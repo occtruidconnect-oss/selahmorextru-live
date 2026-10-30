@@ -1,0 +1,1343 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>TRU Spelling Bee Showdown</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root{
+        --gold:#D4AF37; --gold-deep:#B29555; --gold-soft:#F0D98C;
+        --crimson:#8C0000; --crimson-bright:#C1272D;
+        --cream:#F5F0E6; --cream-2:#FAF7F2;
+        --stage:#0E0B07; --stage-2:#1A1409;
+        --panel:#221A0E; --panel-2:#2C2110;
+        --ink:#F5F0E6; --ink-dim:#CBBFA3;
+        --line:rgba(212,175,55,.45);
+        --tile:#2E2412; --tile-edge:#0A0703;
+        --shadow:0 18px 50px rgba(0,0,0,.55);
+        --p1:#D4AF37; --p2:#C1272D; --p3:#2E9E6B; --p4:#3E7CB1;
+      }
+      @media (prefers-color-scheme: light){
+        :root{
+          --stage:#F5F0E6; --stage-2:#EFE6D2;
+          --panel:#FFFDF6; --panel-2:#FBF3DF;
+          --ink:#241B08; --ink-dim:#6B5B33;
+          --line:rgba(140,110,30,.5);
+          --tile:#FFF6DC; --tile-edge:#D9C98F;
+          --shadow:0 18px 44px rgba(120,90,10,.25);
+        }
+      }
+      *{ box-sizing:border-box; }
+      html,body{ height:100%; }
+      body{
+        margin:0; color:var(--ink);
+        font-family:"Fredoka",system-ui,sans-serif;
+        background:
+          radial-gradient(1100px 500px at 15% -10%, rgba(212,175,55,.28), transparent 60%),
+          radial-gradient(1100px 500px at 85% -10%, rgba(193,39,45,.20), transparent 60%),
+          radial-gradient(900px 700px at 50% 115%, rgba(212,175,55,.16), transparent 60%),
+          linear-gradient(180deg, var(--stage-2), var(--stage));
+        background-attachment:fixed;
+        overflow-x:hidden;
+      }
+      /* honeycomb texture */
+      body::before{
+        content:""; position:fixed; inset:0; pointer-events:none; opacity:.05; z-index:0;
+        background-image:
+          radial-gradient(circle at 50% 50%, var(--gold) 1.6px, transparent 1.7px);
+        background-size:34px 34px;
+      }
+      #app{ position:relative; z-index:1; max-width:1560px; margin:0 auto; padding:clamp(10px,2vw,26px); }
+
+      /* ---------- top bar ---------- */
+      .topbar{
+        display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+        padding:10px 16px; border:1.5px solid var(--line); border-radius:18px;
+        background:linear-gradient(180deg, var(--panel-2), var(--panel));
+        box-shadow:var(--shadow);
+      }
+      .brand{ display:flex; align-items:center; gap:12px; min-width:0; }
+      .brand .seal{
+        width:46px; height:46px; flex:none; border-radius:50%;
+        border:2px solid var(--gold); display:grid; place-items:center;
+        background:radial-gradient(circle at 50% 35%, #3A2C10, #171106);
+        color:var(--gold); font-family:"Cinzel",serif; font-weight:900; font-size:15px; letter-spacing:.04em;
+      }
+      @media (prefers-color-scheme: light){ .brand .seal{ background:radial-gradient(circle at 50% 35%, #FFF3C4, #F0D98C); color:#7A5B00; } }
+      .brand .bname{ font-family:"Cinzel",serif; font-weight:800; letter-spacing:.14em; font-size:clamp(11px,1.3vw,14px); color:var(--gold); }
+      .brand .btag{ font-size:clamp(10px,1.1vw,12px); letter-spacing:.3em; color:var(--ink-dim); font-weight:600; }
+      .topbar .spacer{ flex:1; }
+      .tbtn{
+        font-family:"Fredoka",sans-serif; font-weight:600; cursor:pointer;
+        border:1.5px solid var(--line); background:var(--panel-2); color:var(--ink);
+        border-radius:999px; padding:9px 16px; font-size:15px;
+        transition:transform .12s ease, background .12s ease;
+      }
+      .tbtn:hover{ transform:translateY(-1px); background:var(--panel); }
+      .tbtn:active{ transform:translateY(1px); }
+      .tbtn[aria-pressed="true"]{ background:var(--gold); color:#241B08; border-color:var(--gold-deep); }
+
+      h1.showtitle{
+        font-family:"Cinzel",serif; font-weight:900; text-align:center;
+        font-size:clamp(30px,5.2vw,64px); line-height:1.02; margin:clamp(14px,3vh,30px) 0 4px;
+        color:var(--gold); letter-spacing:.02em;
+        text-shadow:0 3px 0 rgba(0,0,0,.35), 0 10px 34px rgba(212,175,55,.35);
+      }
+      @media (prefers-color-scheme: light){ h1.showtitle{ text-shadow:0 2px 0 rgba(255,255,255,.7), 0 10px 30px rgba(212,175,55,.4); } }
+      h1.showtitle .red{ color:var(--crimson-bright); }
+      .subtitle{ text-align:center; font-size:clamp(15px,1.8vw,21px); color:var(--ink-dim); font-weight:500; margin:0 0 8px; }
+      .subtitle b{ color:var(--ink); }
+
+      .screen{ display:none; }
+      .screen.on{ display:block; animation:screenIn .45s ease both; }
+      @keyframes screenIn{ from{ opacity:0; transform:translateY(14px);} to{ opacity:1; transform:none;} }
+      @media (prefers-reduced-motion: reduce){
+        .screen.on{ animation:none; }
+        *{ transition:none !important; }
+      }
+
+      /* ---------- setup ---------- */
+      .setup-grid{ display:grid; grid-template-columns:1.35fr .9fr; gap:18px; margin-top:14px; }
+      @media (max-width:900px){ .setup-grid{ grid-template-columns:1fr; } }
+      .card{
+        border:1.5px solid var(--line); border-radius:22px; padding:20px;
+        background:linear-gradient(180deg, var(--panel-2), var(--panel)); box-shadow:var(--shadow);
+      }
+      .card h2{ font-family:"Cinzel",serif; font-size:clamp(17px,2vw,22px); margin:0 0 6px; color:var(--gold); letter-spacing:.05em; }
+      .card p.hint{ margin:0 0 14px; color:var(--ink-dim); font-size:15px; }
+      .seg{ display:flex; gap:10px; flex-wrap:wrap; }
+      .seg button{
+        font-family:"Fredoka",sans-serif; font-weight:600; font-size:17px; cursor:pointer;
+        border:2px solid var(--line); border-radius:14px; padding:12px 20px;
+        background:var(--tile); color:var(--ink); transition:all .12s ease;
+      }
+      .seg button:hover{ transform:translateY(-2px); }
+      .seg button.sel{ background:var(--gold); color:#241B08; border-color:var(--gold-deep); box-shadow:0 8px 22px rgba(212,175,55,.35); }
+      .seg button small{ display:block; font-size:12px; font-weight:500; opacity:.75; }
+
+      .player-row{
+        display:flex; align-items:center; gap:12px; padding:12px; margin-top:12px; flex-wrap:wrap;
+        border:1.5px solid var(--line); border-radius:16px; background:var(--panel);
+      }
+      .player-row .dot{ width:16px; height:16px; border-radius:50%; flex:none; box-shadow:0 0 0 3px rgba(0,0,0,.25); }
+      .player-row input{
+        flex:1; min-width:110px; font-family:"Fredoka",sans-serif; font-size:19px; font-weight:600;
+        padding:10px 14px; border-radius:12px; border:2px solid var(--line);
+        background:var(--tile); color:var(--ink);
+      }
+      .player-row input:focus{ outline:3px solid var(--gold); outline-offset:1px; }
+      .mascots{ display:flex; gap:8px; flex-wrap:wrap; }
+      @media (max-width:560px){
+        .player-row input{ flex:1 1 130px; }
+        .mascots button{ width:46px; height:46px; }
+        .seg button{ padding:11px 14px; font-size:16px; }
+      }
+      .mascots button{
+        width:52px; height:52px; border-radius:14px; cursor:pointer; padding:5px;
+        border:2px solid var(--line); background:var(--tile); transition:all .12s ease;
+      }
+      .mascots button:hover{ transform:translateY(-2px) rotate(-2deg); }
+      .mascots button.sel{ border-color:var(--gold); background:var(--gold-soft); box-shadow:0 6px 18px rgba(212,175,55,.4); }
+      .mascots svg{ width:100%; height:100%; display:block; }
+
+      .big-start{
+        margin-top:20px; width:100%; cursor:pointer; border:none; border-radius:20px;
+        font-family:"Cinzel",serif; font-weight:900; letter-spacing:.06em;
+        font-size:clamp(21px,2.6vw,30px); padding:20px;
+        color:#FFF7DC; background:linear-gradient(180deg, #D33A41, var(--crimson));
+        box-shadow:0 14px 34px rgba(140,0,0,.45), inset 0 2px 0 rgba(255,255,255,.35);
+        transition:transform .12s ease, filter .12s ease;
+      }
+      .big-start:hover{ transform:translateY(-2px) scale(1.01); filter:brightness(1.07); }
+      .big-start:active{ transform:translateY(1px); }
+      .rules{ list-style:none; margin:6px 0 0; padding:0; display:grid; gap:12px; font-size:16px; }
+      .rules li{ display:flex; gap:12px; align-items:flex-start; }
+      .rules .n{
+        flex:none; width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
+        background:var(--gold); color:#241B08; font-weight:700; font-size:16px;
+      }
+      .rules b{ color:var(--gold); }
+
+      /* ---------- game layout ---------- */
+      .game-grid{ display:grid; grid-template-columns:1fr 320px; gap:16px; margin-top:14px; align-items:start; }
+      @media (max-width:1020px){ .game-grid{ grid-template-columns:1fr; } }
+
+      .board-card{ padding:14px 16px 10px; }
+      .board-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px; }
+      .board-head .t{ font-family:"Cinzel",serif; font-weight:800; color:var(--gold); letter-spacing:.06em; font-size:17px; }
+      .board-head .round{ margin-left:auto; font-weight:600; color:var(--ink-dim); font-size:15px; }
+      #board{ position:relative; width:100%; height:210px; }
+      @media (max-width:700px){ #board{ height:170px; } }
+      #board svg.track{ position:absolute; inset:0; width:100%; height:100%; }
+      .space{
+        position:absolute; width:40px; height:40px; margin:-20px 0 0 -20px; border-radius:50%;
+        display:grid; place-items:center; font-weight:700; font-size:14px;
+        background:var(--tile); border:2px solid var(--line); color:var(--ink-dim);
+        transition:all .3s ease;
+      }
+      @media (max-width:700px){ .space{ width:30px; height:30px; margin:-15px 0 0 -15px; font-size:11px; } }
+      .space.start{ background:var(--gold); color:#241B08; border-color:var(--gold-deep); }
+      .space.gate{ background:linear-gradient(180deg,#FFE98A,var(--gold)); color:#5A4300; border-color:#FFF3C4; box-shadow:0 0 22px rgba(212,175,55,.8); font-size:19px; }
+      .space.passed{ border-color:var(--gold); color:var(--ink); }
+      .token{
+        position:absolute; width:34px; height:34px; margin:-17px 0 0 -17px; z-index:5;
+        transition:left .65s cubic-bezier(.34,1.4,.44,1), top .65s cubic-bezier(.34,1.4,.44,1);
+        filter:drop-shadow(0 5px 6px rgba(0,0,0,.5));
+      }
+      @media (max-width:700px){ .token{ width:26px; height:26px; margin:-13px 0 0 -13px; } }
+      .token svg{ width:100%; height:100%; display:block; }
+      .token.hop{ animation:hop .65s ease; }
+      @keyframes hop{ 0%{ transform:translateY(0) scale(1);} 35%{ transform:translateY(-20px) scale(1.15);} 100%{ transform:translateY(0) scale(1);} }
+
+      /* stage */
+      .stage-card{ margin-top:16px; padding:clamp(16px,2.4vw,28px); position:relative; overflow:hidden; }
+      .stage-card::before{
+        content:""; position:absolute; inset:-40% -10% auto; height:70%; pointer-events:none;
+        background:radial-gradient(closest-side, rgba(212,175,55,.22), transparent);
+      }
+      .turn-banner{
+        display:flex; align-items:center; gap:16px; flex-wrap:wrap; position:relative;
+      }
+      .turn-banner .avatar{
+        width:84px; height:84px; flex:none; border-radius:24px; padding:8px;
+        border:3px solid var(--pc, var(--gold)); background:var(--panel);
+        box-shadow:0 10px 26px rgba(0,0,0,.4);
+        animation:bob 2.6s ease-in-out infinite;
+      }
+      @keyframes bob{ 0%,100%{ transform:translateY(0) rotate(-1.5deg);} 50%{ transform:translateY(-7px) rotate(1.5deg);} }
+      .turn-banner .avatar svg{ width:100%; height:100%; display:block; }
+      .turn-banner .who{ font-size:clamp(22px,3vw,34px); font-weight:700; line-height:1.05; }
+      .turn-banner .who .name{ color:var(--pc, var(--gold)); }
+      .turn-banner .sub{ color:var(--ink-dim); font-size:clamp(14px,1.6vw,18px); font-weight:500; }
+      .hearts{ display:flex; gap:5px; align-items:center; font-size:15px; font-weight:600; color:var(--ink-dim); }
+      .hearts .drop{ width:20px; height:24px; display:inline-block; }
+      .hearts .drop svg{ width:100%; height:100%; }
+      .hearts .drop.off{ opacity:.22; filter:grayscale(1); }
+      .timerwrap{ margin-left:auto; display:flex; align-items:center; gap:10px; }
+      .timer-num{ font-size:30px; font-weight:700; min-width:52px; text-align:center; font-variant-numeric:tabular-nums; }
+      .timer-num.low{ color:var(--crimson-bright); animation:pulse .5s ease infinite alternate; }
+      @keyframes pulse{ from{ transform:scale(1);} to{ transform:scale(1.14);} }
+      .timer-bar{ width:150px; height:12px; border-radius:99px; background:var(--tile); border:1.5px solid var(--line); overflow:hidden; }
+      .timer-bar i{ display:block; height:100%; background:linear-gradient(90deg, var(--gold-deep), var(--gold)); width:100%; transition:width 1s linear; }
+      .timer-bar i.low{ background:linear-gradient(90deg, #8C0000, #C1272D); }
+
+      .host-row{ display:flex; gap:16px; margin-top:18px; position:relative; align-items:flex-start; }
+      @media (max-width:700px){ .host-row{ flex-direction:column; } }
+      .buzzy{ width:110px; flex:none; text-align:center; }
+      .buzzy .bee{ animation:bob 3.2s ease-in-out infinite; }
+      .buzzy .bee svg{ width:100%; height:auto; display:block; filter:drop-shadow(0 8px 10px rgba(0,0,0,.4)); }
+      .buzzy .bname2{ font-family:"Cinzel",serif; font-weight:800; font-size:13px; letter-spacing:.12em; color:var(--gold); margin-top:2px; }
+      .bubble{
+        flex:1; position:relative; border-radius:20px; padding:16px 18px;
+        background:var(--cream-2); color:#2A1F07; border:2px solid var(--gold-deep);
+        box-shadow:var(--shadow); min-height:104px;
+      }
+      @media (prefers-color-scheme: dark){ .bubble{ background:#FFF8E3; } }
+      .bubble::before{
+        content:""; position:absolute; left:-12px; top:34px; width:22px; height:22px;
+        background:inherit; border-left:2px solid var(--gold-deep); border-bottom:2px solid var(--gold-deep);
+        transform:rotate(45deg);
+      }
+      @media (max-width:700px){ .bubble::before{ left:34px; top:-12px; transform:rotate(135deg); } }
+      .bubble .say{ font-size:clamp(18px,2.2vw,25px); font-weight:600; line-height:1.3; }
+      .bubble .detail{ margin-top:8px; font-size:clamp(15px,1.7vw,19px); font-weight:500; display:none; }
+      .bubble .detail.show{ display:block; animation:screenIn .3s ease both; }
+      .bubble .detail b{ color:var(--crimson); }
+      .lvl-pill{
+        display:inline-block; font-size:13px; font-weight:700; letter-spacing:.08em;
+        padding:4px 12px; border-radius:99px; background:var(--crimson); color:#FFE9B8; margin-bottom:8px;
+      }
+      .lvl-pill.l1{ background:#2E9E6B; color:#EFFFF5; }
+      .lvl-pill.l2{ background:#B8860B; color:#FFF7DC; }
+      .lvl-pill.l3{ background:var(--crimson); }
+      .lvl-pill.champ{ background:linear-gradient(90deg, var(--crimson), #5A0000); box-shadow:0 0 16px rgba(193,39,45,.6); }
+
+      .host-btns{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; position:relative; }
+      .hbtn{
+        font-family:"Fredoka",sans-serif; font-weight:600; font-size:clamp(15px,1.7vw,19px); cursor:pointer;
+        border-radius:14px; padding:13px 20px; border:2px solid var(--gold-deep);
+        background:var(--panel); color:var(--ink); transition:all .12s ease;
+        display:inline-flex; align-items:center; gap:9px;
+      }
+      .hbtn:hover{ transform:translateY(-2px); background:var(--panel-2); }
+      .hbtn:active{ transform:translateY(1px); }
+      .hbtn svg{ width:21px; height:21px; flex:none; }
+      .hbtn:disabled{ opacity:.45; cursor:default; transform:none; }
+
+      /* answer slots + tiles */
+      .slots{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:24px 0 6px; min-height:74px; position:relative; }
+      .slot{
+        width:clamp(42px,6vw,62px); height:clamp(54px,7.6vw,76px); border-radius:14px;
+        display:grid; place-items:center; font-size:clamp(26px,4vw,40px); font-weight:700;
+        background:var(--tile); border:2.5px dashed var(--line); color:var(--ink);
+        text-transform:uppercase;
+      }
+      .slot.fill{ border-style:solid; border-color:var(--gold); background:var(--panel-2); animation:pop .18s ease; }
+      .slot.good{ background:#1E5C3A; border-color:#37B268; color:#DFFFF0; }
+      .slot.bad{ background:#5C1414; border-color:#C1272D; color:#FFE3E3; animation:shake .4s ease; }
+      .slot.hint{ border-color:var(--gold); color:var(--gold); border-style:solid; }
+      @keyframes pop{ 0%{ transform:scale(.7);} 100%{ transform:scale(1);} }
+      @keyframes shake{ 0%,100%{ transform:translateX(0);} 25%{ transform:translateX(-7px);} 75%{ transform:translateX(7px);} }
+      .wordcount{ text-align:center; color:var(--ink-dim); font-weight:600; font-size:15px; min-height:22px; }
+
+      .tiles{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:12px; position:relative; }
+      .tile{
+        width:clamp(44px,6.4vw,64px); height:clamp(52px,7.4vw,74px); border-radius:14px; cursor:pointer;
+        font-family:"Fredoka",sans-serif; font-size:clamp(22px,3.4vw,32px); font-weight:700; text-transform:uppercase;
+        background:linear-gradient(180deg, var(--panel-2), var(--tile)); color:var(--ink);
+        border:2px solid var(--line); border-bottom:5px solid var(--tile-edge);
+        transition:transform .08s ease, background .1s ease;
+      }
+      .tile:hover{ transform:translateY(-3px); border-color:var(--gold); }
+      .tile:active{ transform:translateY(2px); border-bottom-width:2px; }
+      .tile.used{ background:var(--gold); color:#241B08; }
+      .act-row{ display:flex; gap:12px; justify-content:center; margin-top:18px; flex-wrap:wrap; position:relative; }
+      .btn-back{
+        font-family:"Fredoka",sans-serif; font-weight:600; font-size:19px; cursor:pointer;
+        border-radius:14px; padding:15px 24px; border:2px solid var(--line);
+        background:var(--panel); color:var(--ink);
+      }
+      .btn-back:hover{ background:var(--panel-2); }
+      .btn-spell{
+        font-family:"Cinzel",serif; font-weight:900; letter-spacing:.05em; font-size:clamp(20px,2.4vw,27px);
+        cursor:pointer; border:none; border-radius:16px; padding:15px 42px;
+        color:#FFF7DC; background:linear-gradient(180deg, #37B268, #1E7A44);
+        box-shadow:0 12px 28px rgba(30,122,68,.45), inset 0 2px 0 rgba(255,255,255,.35);
+        transition:transform .12s ease, filter .12s ease;
+      }
+      .btn-spell:hover{ transform:translateY(-2px); filter:brightness(1.08); }
+      .btn-spell:disabled{ opacity:.5; cursor:default; transform:none; }
+      .btn-grace{
+        font-family:"Fredoka",sans-serif; font-weight:700; font-size:19px; cursor:pointer;
+        border-radius:14px; padding:15px 24px; border:2px solid var(--gold);
+        background:linear-gradient(180deg, #FFE98A, var(--gold)); color:#4A3600;
+        box-shadow:0 10px 24px rgba(212,175,55,.4);
+      }
+
+      /* result overlay banner */
+      .flash{
+        position:absolute; inset:0; display:none; place-items:center; z-index:8; text-align:center;
+        background:rgba(10,7,3,.45); backdrop-filter:blur(2px); border-radius:22px; padding:20px;
+      }
+      .flash.show{ display:grid; animation:screenIn .25s ease both; }
+      .flash .big{ font-family:"Cinzel",serif; font-weight:900; font-size:clamp(34px,5.5vw,64px); color:var(--gold-soft); text-shadow:0 4px 0 rgba(0,0,0,.5), 0 0 44px rgba(212,175,55,.6); }
+      .flash .big.red{ color:#FF9B9B; }
+      .flash .small{ font-size:clamp(17px,2.2vw,24px); font-weight:600; color:#FFF6DA; margin-top:8px; }
+      .flash .word-reveal{ font-size:clamp(24px,3.6vw,40px); font-weight:700; letter-spacing:.22em; color:#fff; margin-top:10px; text-transform:uppercase; }
+
+      /* sidebar */
+      .side{ display:grid; gap:16px; }
+      .lb-row{
+        display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:16px;
+        border:2px solid var(--line); background:var(--panel); margin-top:10px; transition:all .25s ease;
+      }
+      .lb-row.active{ border-color:var(--pc); box-shadow:0 0 0 2px var(--pc), 0 10px 26px rgba(0,0,0,.35); transform:scale(1.02); }
+      .lb-row .av{ width:46px; height:46px; flex:none; }
+      .lb-row .av svg{ width:100%; height:100%; display:block; }
+      .lb-row .nm{ font-weight:700; font-size:18px; line-height:1.1; }
+      .lb-row .meta{ color:var(--ink-dim); font-size:13.5px; font-weight:500; }
+      .lb-row .pos{ margin-left:auto; text-align:right; }
+      .lb-row .pos .pnum{ font-family:"Cinzel",serif; font-weight:900; font-size:22px; color:var(--gold); }
+      .lb-row .pos .plbl{ font-size:11px; letter-spacing:.14em; color:var(--ink-dim); font-weight:700; }
+      .streak{ display:inline-block; background:var(--crimson); color:#FFE9B8; border-radius:99px; padding:1px 9px; font-size:12px; font-weight:700; margin-left:6px; }
+
+      /* podium */
+      .podium-wrap{ text-align:center; margin-top:10px; }
+      .trophy{ width:clamp(110px,16vw,170px); margin:8px auto 0; animation:bob 3s ease-in-out infinite; filter:drop-shadow(0 14px 22px rgba(212,175,55,.45)); }
+      .podium{ display:flex; align-items:flex-end; justify-content:center; gap:14px; margin:26px auto 6px; max-width:760px; flex-wrap:wrap; }
+      .pod{ flex:1; min-width:170px; border-radius:18px 18px 0 0; padding:18px 12px 14px; text-align:center; border:2px solid var(--line); border-bottom:none; background:linear-gradient(180deg, var(--panel-2), var(--panel)); }
+      .pod .av{ width:76px; height:76px; margin:0 auto 6px; }
+      .pod .av svg{ width:100%; height:100%; }
+      .pod .pn{ font-weight:700; font-size:22px; }
+      .pod .pm{ color:var(--ink-dim); font-weight:600; font-size:14px; }
+      .pod .place{ font-family:"Cinzel",serif; font-weight:900; font-size:30px; color:var(--gold); }
+      .pod.first{ min-height:250px; border-color:var(--gold); box-shadow:0 -8px 40px rgba(212,175,55,.35); }
+      .pod.second{ min-height:205px; }
+      .pod.third{ min-height:170px; }
+      .pod.rest{ min-height:140px; }
+      .podium-btns{ display:flex; gap:12px; justify-content:center; margin-top:26px; flex-wrap:wrap; }
+      .scripture{ text-align:center; margin-top:22px; color:var(--ink-dim); font-size:16px; font-weight:500; }
+      .scripture b{ color:var(--gold); font-family:"Cinzel",serif; letter-spacing:.04em; }
+
+      #confetti{ position:fixed; inset:0; pointer-events:none; z-index:60; }
+      .foot{ text-align:center; color:var(--ink-dim); font-size:13.5px; margin:20px 0 8px; font-weight:500; letter-spacing:.06em; }
+      .foot b{ color:var(--gold); font-family:"Cinzel",serif; }
+    </style>
+  </head>
+  <body>
+
+    <!-- ============ mascot artwork (inline SVG) ============ -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <defs>
+        <symbol id="m-bee" viewBox="0 0 100 100">
+          <ellipse cx="30" cy="26" rx="17" ry="11" fill="#EAF6FF" opacity=".9" transform="rotate(-24 30 26)"/>
+          <ellipse cx="70" cy="26" rx="17" ry="11" fill="#EAF6FF" opacity=".9" transform="rotate(24 70 26)"/>
+          <ellipse cx="50" cy="58" rx="30" ry="27" fill="#FFC93C"/>
+          <path d="M32 40 q4 18 0 34 M50 33 q5 25 0 50 M68 40 q-4 18 0 34" stroke="#241B08" stroke-width="9" fill="none" stroke-linecap="round"/>
+          <circle cx="41" cy="55" r="4.4" fill="#241B08"/>
+          <circle cx="59" cy="55" r="4.4" fill="#241B08"/>
+          <path d="M42 68 q8 7 16 0" stroke="#241B08" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <circle cx="33" cy="64" r="5" fill="#FF9DB0" opacity=".8"/>
+          <circle cx="67" cy="64" r="5" fill="#FF9DB0" opacity=".8"/>
+          <path d="M50 31 l0 -12 M44 14 q6 -6 12 0" stroke="#241B08" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <circle cx="50" cy="12" r="4" fill="#C1272D"/>
+        </symbol>
+        <symbol id="m-lion" viewBox="0 0 100 100">
+          <g fill="#E08A2E">
+            <circle cx="50" cy="50" r="37"/>
+            <circle cx="50" cy="16" r="10"/><circle cx="82" cy="34" r="10"/><circle cx="82" cy="66" r="10"/>
+            <circle cx="50" cy="84" r="10"/><circle cx="18" cy="66" r="10"/><circle cx="18" cy="34" r="10"/>
+            <circle cx="71" cy="21" r="10"/><circle cx="29" cy="21" r="10"/><circle cx="71" cy="79" r="10"/><circle cx="29" cy="79" r="10"/>
+          </g>
+          <circle cx="50" cy="52" r="28" fill="#F7C873"/>
+          <circle cx="28" cy="34" r="7" fill="#E08A2E"/><circle cx="72" cy="34" r="7" fill="#E08A2E"/>
+          <circle cx="28" cy="34" r="3.4" fill="#F7C873"/><circle cx="72" cy="34" r="3.4" fill="#F7C873"/>
+          <circle cx="41" cy="50" r="4.2" fill="#241B08"/><circle cx="59" cy="50" r="4.2" fill="#241B08"/>
+          <ellipse cx="50" cy="60" rx="5.4" ry="4.2" fill="#B3541E"/>
+          <path d="M50 64 q0 6 -6 7 M50 64 q0 6 6 7" stroke="#241B08" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="m-owl" viewBox="0 0 100 100">
+          <path d="M22 26 L34 12 L42 24 M78 26 L66 12 L58 24" stroke="#5B7C99" stroke-width="8" fill="none" stroke-linecap="round"/>
+          <ellipse cx="50" cy="56" rx="31" ry="34" fill="#7FA6C9"/>
+          <ellipse cx="50" cy="68" rx="19" ry="20" fill="#DCEBF7"/>
+          <circle cx="39" cy="48" r="10.5" fill="#fff"/><circle cx="61" cy="48" r="10.5" fill="#fff"/>
+          <circle cx="39" cy="48" r="5" fill="#241B08"/><circle cx="61" cy="48" r="5" fill="#241B08"/>
+          <circle cx="40.8" cy="46.2" r="1.7" fill="#fff"/><circle cx="62.8" cy="46.2" r="1.7" fill="#fff"/>
+          <path d="M45 57 L55 57 L50 64 Z" fill="#F2A93B"/>
+          <path d="M36 76 q4 4 8 0 M48 80 q4 4 8 0 M58 74 q4 4 8 0" stroke="#7FA6C9" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path d="M38 92 l-4 6 M62 92 l4 6" stroke="#F2A93B" stroke-width="4" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="m-rocket" viewBox="0 0 100 100">
+          <path d="M50 6 C66 20 70 40 68 58 L32 58 C30 40 34 20 50 6 Z" fill="#EDEFF2"/>
+          <path d="M32 52 C20 62 16 76 18 86 L34 72 Z" fill="#C1272D"/>
+          <path d="M68 52 C80 62 84 76 82 86 L66 72 Z" fill="#C1272D"/>
+          <circle cx="50" cy="36" r="10" fill="#7FC4E8" stroke="#B29555" stroke-width="4"/>
+          <path d="M40 58 h20 l-3 14 h-14 Z" fill="#D4AF37"/>
+          <path d="M50 74 C46 82 44 90 50 97 C56 90 54 82 50 74 Z" fill="#F28C28"/>
+          <path d="M50 79 C48 84 47.5 88 50 92 C52.5 88 52 84 50 79 Z" fill="#FFD93C"/>
+        </symbol>
+        <symbol id="m-drop" viewBox="0 0 20 24">
+          <path d="M10 1 C10 1 2 11 2 15.5 A8 8 0 0 0 18 15.5 C18 11 10 1 10 1 Z" fill="#F2A93B" stroke="#B29555" stroke-width="1.4"/>
+        </symbol>
+        <symbol id="i-sound" viewBox="0 0 24 24">
+          <path d="M4 9 v6 h4 l6 5 V4 L8 9 H4 Z" fill="currentColor"/>
+          <path d="M17 8.5 a5 5 0 0 1 0 7 M19.5 6 a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="i-book" viewBox="0 0 24 24">
+          <path d="M12 5 C9.5 3.4 5.5 3 3 3.6 V20 c2.5-.6 6.5-.2 9 1.4 C14.5 19.8 18.5 19.4 21 20 V3.6 C18.5 3 14.5 3.4 12 5 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M12 5 v16" stroke="currentColor" stroke-width="2"/>
+        </symbol>
+        <symbol id="i-chat" viewBox="0 0 24 24">
+          <path d="M4 4 h16 a1.5 1.5 0 0 1 1.5 1.5 V15 a1.5 1.5 0 0 1 -1.5 1.5 H10 L5 20.5 V5.5 A1.5 1.5 0 0 1 4 4 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M8 8.5 h9 M8 12 h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="i-key" viewBox="0 0 24 24">
+          <circle cx="8" cy="14" r="4.6" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M11.5 10.5 L20 2 M16.5 6 L20 9.5 M13.8 9.2 L17 12.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+      </defs>
+    </svg>
+
+    <canvas id="confetti" aria-hidden="true"></canvas>
+
+    <div id="app">
+      <!-- ============ top bar ============ -->
+      <header class="topbar">
+        <div class="brand">
+          <div class="seal">TRU</div>
+          <div>
+            <div class="bname">TRU IDENTITY MINISTRY</div>
+            <div class="btag">FAITH • PURPOSE • EXAMPLE</div>
+          </div>
+        </div>
+        <div class="spacer"></div>
+        <button class="tbtn" id="btnTestSound" type="button">Test Sound</button>
+        <button class="tbtn" id="btnSound" type="button" aria-pressed="true">Sound: ON</button>
+        <button class="tbtn" id="btnSpeak" type="button" aria-pressed="true">Host Voice: ON</button>
+        <button class="tbtn" id="btnFull" type="button">Full Screen</button>
+      </header>
+
+      <!-- ============ SETUP ============ -->
+      <section class="screen on" id="screen-setup">
+        <h1 class="showtitle">SPELLING BEE<br /><span class="red">SHOWDOWN</span></h1>
+        <p class="subtitle">The cartoon board-game spelling championship — <b>race your token, spell the word, take the trophy!</b></p>
+
+        <div class="setup-grid">
+          <div class="card">
+            <h2>MEET THE SPELLERS</h2>
+            <p class="hint">How many champions are playing today?</p>
+            <div class="seg" id="countSeg" role="group" aria-label="Number of players">
+              <button type="button" data-n="2">2 Players</button>
+              <button type="button" data-n="3" class="sel">3 Players</button>
+              <button type="button" data-n="4">4 Players</button>
+            </div>
+            <div id="playerRows"></div>
+
+            <h2 style="margin-top:24px;">THE RACE TRACK</h2>
+            <p class="hint">Longer track, bigger championship. First to the Trophy Gate spells the Championship Word to win it all.</p>
+            <div class="seg" id="trackSeg" role="group" aria-label="Track length">
+              <button type="button" data-n="15">Quick Dash<small>15 spaces</small></button>
+              <button type="button" data-n="24" class="sel">Classic Race<small>24 spaces</small></button>
+              <button type="button" data-n="33">Grand Tour<small>33 spaces</small></button>
+            </div>
+
+            <h2 style="margin-top:24px;">WORD POWER</h2>
+            <div class="seg" id="diffSeg" role="group" aria-label="Word difficulty">
+              <button type="button" data-d="grow" class="sel">Growing<small>starts easy, gets mighty</small></button>
+              <button type="button" data-d="1">Little Bees<small>gentle words</small></button>
+              <button type="button" data-d="2">Family Mix<small>medium words</small></button>
+              <button type="button" data-d="3">Champion Words<small>the big ones</small></button>
+            </div>
+
+            <h2 style="margin-top:24px;">BUZZER CLOCK</h2>
+            <div class="seg" id="timerSeg" role="group" aria-label="Turn timer">
+              <button type="button" data-t="45" class="sel">45 Seconds<small>game-show pace</small></button>
+              <button type="button" data-t="90">90 Seconds<small>relaxed</small></button>
+              <button type="button" data-t="0">No Clock<small>take your time</small></button>
+            </div>
+
+            <button class="big-start" id="btnStart" type="button">START THE SHOWDOWN</button>
+          </div>
+
+          <div class="card">
+            <h2>HOW THE SHOWDOWN WORKS</h2>
+            <ul class="rules">
+              <li><span class="n">1</span><span><b>Buzzy the Bee</b> says your word out loud. Tap <b>Hear the Word</b> anytime, ask for the <b>Definition</b>, or hear it <b>In a Sentence</b> — just like a real spelling bee.</span></li>
+              <li><span class="n">2</span><span><b>Spell it</b> by tapping the giant letter tiles (or typing on a keyboard). Spell it right on the first try and your token zooms ahead — bigger words move you farther!</span></li>
+              <li><span class="n">3</span><span><b>Grace Card:</b> miss once and grace steps in — you get a hint and one more try. Nobody gets stung out of this game.</span></li>
+              <li><span class="n">4</span><span><b>Honey Drops</b> protect you. Miss with no second try and you lose a drop; lose a drop with an empty jar and you slide back one space. Three correct in a row refills the jar!</span></li>
+              <li><span class="n">5</span><span><b>The Trophy Gate:</b> reach the end and one Championship Word stands between you and the trophy. Spell it — and the confetti falls!</span></li>
+            </ul>
+            <p class="scripture" style="text-align:left; margin-top:20px;">“Let your speech always be with grace.”<br /><b>— COLOSSIANS 4:6</b></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ GAME ============ -->
+      <section class="screen" id="screen-game">
+        <div class="game-grid">
+          <div>
+            <div class="card board-card">
+              <div class="board-head">
+                <span class="t">THE HONEYCOMB RACE TRACK</span>
+                <span class="round" id="roundLabel">Round 1</span>
+              </div>
+              <div id="board">
+                <svg class="track" id="trackSvg" preserveAspectRatio="none" aria-hidden="true"><polyline id="trackLine" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".55" /></svg>
+              </div>
+            </div>
+
+            <div class="card stage-card" id="stageCard">
+              <div class="turn-banner">
+                <div class="avatar" id="turnAvatar"></div>
+                <div>
+                  <div class="who"><span class="name" id="turnName">Player</span>, you&rsquo;re up!</div>
+                  <div class="sub" id="turnSub">Step up to the microphone…</div>
+                </div>
+                <div style="display:grid; gap:6px; justify-items:end;">
+                  <div class="hearts" id="heartsBox" title="Honey Drops"></div>
+                  <div class="timerwrap" id="timerWrap">
+                    <div class="timer-bar"><i id="timerFill"></i></div>
+                    <div class="timer-num" id="timerNum">45</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="host-row">
+                <div class="buzzy">
+                  <div class="bee"><svg viewBox="0 0 100 100" role="img" aria-label="Buzzy the Bee, your host"><use href="#m-bee"/></svg></div>
+                  <div class="bname2">BUZZY • YOUR HOST</div>
+                </div>
+                <div class="bubble">
+                  <span class="lvl-pill l1" id="lvlPill">WARM-UP WORD</span>
+                  <div class="say" id="bubbleSay">Welcome to the Showdown!</div>
+                  <div class="detail" id="bubbleDef"></div>
+                  <div class="detail" id="bubbleSent"></div>
+                </div>
+              </div>
+
+              <div class="host-btns">
+                <button class="hbtn" id="btnHear" type="button"><svg><use href="#i-sound"/></svg>Hear the Word</button>
+                <button class="hbtn" id="btnDef" type="button"><svg><use href="#i-book"/></svg>Definition</button>
+                <button class="hbtn" id="btnSent" type="button"><svg><use href="#i-chat"/></svg>In a Sentence</button>
+                <button class="hbtn" id="btnHint" type="button"><svg><use href="#i-key"/></svg>First-Letter Hint</button>
+              </div>
+
+              <div class="slots" id="slots" aria-live="polite"></div>
+              <div class="wordcount" id="wordCount"></div>
+              <div class="tiles" id="tiles"></div>
+
+              <div class="act-row">
+                <button class="btn-back" id="btnBack" type="button">&#8592; Delete Letter</button>
+                <button class="btn-grace" id="btnGrace" type="button" style="display:none;">Use Grace Card</button>
+                <button class="btn-spell" id="btnCheck" type="button">SPELL IT!</button>
+              </div>
+
+              <div class="flash" id="flash">
+                <div>
+                  <div class="big" id="flashBig">CORRECT!</div>
+                  <div class="small" id="flashSmall"></div>
+                  <div class="word-reveal" id="flashWord"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="side">
+            <div class="card">
+              <h2>SHOWDOWN STANDINGS</h2>
+              <div id="leaderboard"></div>
+            </div>
+            <div class="card">
+              <h2>HOST CONTROLS</h2>
+              <p class="hint">Running the show from the couch? These are for you.</p>
+              <div style="display:grid; gap:10px;">
+                <button class="tbtn" id="btnSkip" type="button">Skip This Word</button>
+                <button class="tbtn" id="btnRestart" type="button">Restart the Showdown</button>
+                <button class="tbtn" id="btnNewPlayers" type="button">New Spellers (Back to Setup)</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ PODIUM ============ -->
+      <section class="screen" id="screen-podium">
+        <div class="podium-wrap">
+          <h1 class="showtitle" style="margin-top:8px;">WE HAVE A<br /><span class="red">CHAMPION!</span></h1>
+          <svg class="trophy" viewBox="0 0 100 100" role="img" aria-label="Golden trophy">
+            <path d="M28 12 h44 v18 a22 22 0 0 1 -44 0 Z" fill="#D4AF37" stroke="#B29555" stroke-width="2.5"/>
+            <path d="M28 18 C14 18 10 26 12 33 C14 41 22 44 29 42 M72 18 C86 18 90 26 88 33 C86 41 78 44 71 42" fill="none" stroke="#B29555" stroke-width="5"/>
+            <rect x="45" y="50" width="10" height="12" fill="#B29555"/>
+            <rect x="34" y="62" width="32" height="8" rx="2" fill="#D4AF37" stroke="#B29555" stroke-width="2"/>
+            <rect x="28" y="70" width="44" height="9" rx="2" fill="#8C0000"/>
+            <path d="M50 20 l3.2 6.4 7 1 -5 5 1.2 7 -6.4 -3.4 -6.4 3.4 1.2 -7 -5 -5 7 -1 Z" fill="#FFF3C4"/>
+          </svg>
+          <div class="podium" id="podium"></div>
+          <p class="scripture">“I can do all things through Christ who strengthens me.”<br /><b>— PHILIPPIANS 4:13</b></p>
+          <div class="podium-btns">
+            <button class="btn-spell" id="btnAgain" type="button">PLAY AGAIN</button>
+            <button class="btn-back" id="btnPodiumSetup" type="button">New Spellers</button>
+          </div>
+        </div>
+      </section>
+
+      <p class="foot"><b>BE TRU.</b> &nbsp;•&nbsp; TRU IDENTITY MINISTRY &nbsp;•&nbsp; SPELLING BEE SHOWDOWN</p>
+    </div>
+
+    <script>
+    "use strict";
+    /* ================= WORD BANK ================= */
+    /* level 1: warm-up • level 2: family mix • level 3: champion words */
+    var WORDS = {
+      1: [
+        ["brave","Not afraid; ready to do the right thing even when it feels scary.","She was brave when she sang in front of the whole church."],
+        ["faith","Trusting and believing in God, even when you cannot see Him.","His faith helped him stay calm during the storm."],
+        ["grace","A free gift of kindness and love that we did not earn.","She showed grace by forgiving her friend."],
+        ["happy","Feeling glad and full of joy.","The happy kids clapped along with the music."],
+        ["light","Something that makes it possible to see; the opposite of dark.","Turn on the light so we can read our Bible."],
+        ["heart","The part of you that feels love; also the organ that pumps your blood.","She has a kind heart and shares with everyone."],
+        ["dream","Pictures your mind makes while you sleep, or a big hope for your future.","His dream is to become a teacher one day."],
+        ["smile","The happy look your mouth makes when you are glad.","Her smile made the whole room feel warmer."],
+        ["share","To give part of what you have to someone else.","Please share your crayons with your sister."],
+        ["plant","A living thing that grows in the ground, like a flower or a tree.","We water the plant every morning."],
+        ["bread","A food made from flour and baked in an oven.","Grandma bakes fresh bread on Saturdays."],
+        ["water","The clear liquid we drink that fills rivers, lakes, and oceans.","Drink some water after you finish running."],
+        ["music","Sounds put together in a way that is beautiful to hear.","The music at church made everybody want to dance."],
+        ["dance","To move your body to the rhythm of music.","They dance for joy when the choir sings."],
+        ["honey","The sweet, golden food that bees make.","He put honey in his tea to make it sweet."],
+        ["sunny","Full of sunshine and bright light.","It is a sunny day, perfect for the park."],
+        ["strong","Having lots of power in your body or your spirit.","She is strong because she never gives up."],
+        ["gentle","Soft, kind, and careful with others.","Be gentle when you hold the baby chick."],
+        ["friend","Someone you love, trust, and enjoy being with.","My best friend sits with me at lunch."],
+        ["garden","A place where flowers, fruits, or vegetables are grown.","We planted tomatoes in the garden."],
+        ["praise","To sing or speak words that honor and thank God.","We praise God for His goodness every day."],
+        ["shine","To give off bright light, like the sun or a star.","Let your light shine for everyone to see."],
+        ["cloud","The soft white shapes in the sky made of tiny drops of water.","That cloud looks like a fluffy sheep."],
+        ["river","A long stream of water that flows across the land.","The river runs right past our town."],
+        ["sweet","Tasting like sugar or honey; also used for someone very kind.","The sweet watermelon was the best part of lunch."],
+        ["truth","The real facts; what is honest and right.","Always tell the truth, even when it is hard."],
+        ["mercy","Kindness and forgiveness shown to someone who made a mistake.","God showed us mercy and gave us another chance."],
+        ["angel","A messenger from heaven sent by God.","The angel told Mary the good news."],
+        ["pray","To talk to God — thanking Him, asking Him, and listening.","We pray together before dinner every night."]
+      ],
+      2: [
+        ["courage","Being brave and doing the right thing even when you feel afraid.","It took courage to tell the truth."],
+        ["believe","To trust that something is true.","I believe God has a plan for my life."],
+        ["miracle","Something amazing that only God can do.","The healing was a miracle the doctors could not explain."],
+        ["harvest","The time when farmers gather the crops they have grown.","At harvest time, the fields were full of corn."],
+        ["journey","A trip from one place to another, sometimes a long one.","Their journey across the desert took forty years."],
+        ["promise","A word you give that you will surely do what you said.","A promise is something you must keep."],
+        ["champion","The winner; someone who stands up for others.","She became the spelling champion of her class."],
+        ["treasure","Something very valuable that you keep safe and love.","A good friend is a treasure worth more than gold."],
+        ["whisper","To speak very, very softly.","Please whisper so you do not wake the baby."],
+        ["thunder","The loud rumbling sound that follows lightning in a storm.","The thunder rolled across the sky all night."],
+        ["rainbow","The colorful arc that appears in the sky after rain.","The rainbow reminded them of God's promise."],
+        ["victory","Winning a battle, a game, or a hard fight.","The team shouted for joy at their victory."],
+        ["kindness","Being good, gentle, and helpful to others.","Her kindness made the new student feel welcome."],
+        ["faithful","Always true, loyal, and dependable.","A faithful friend sticks with you no matter what."],
+        ["rejoice","To be full of joy and celebrate with gladness.","Rejoice, because today is a brand-new day."],
+        ["psalm","A sacred song or poem, like the ones King David wrote.","We sang a psalm of thanksgiving together."],
+        ["lantern","A light inside a case that you can carry in the dark.","He carried a lantern down the path."],
+        ["mustard","A tiny seed that grows into a big plant; also a yellow sauce for food.","Faith like a mustard seed can move mountains."],
+        ["shepherd","A person who watches over and protects sheep.","The shepherd guided his flock home safely."],
+        ["blanket","A warm cloth covering you use to stay cozy.","She wrapped the baby in a soft blanket."],
+        ["forever","For all time; never ending.","God's love lasts forever and ever."],
+        ["excellent","The very best; outstanding quality.","You did an excellent job on your test."],
+        ["wonderful","So great that it fills you with wonder and amazement.","What a wonderful day the Lord has made."],
+        ["triumph","A great win or success after a hard struggle.","Crossing the finish line was her triumph."],
+        ["deliver","To rescue someone, or to bring something to a place.","God will deliver us from every trouble."],
+        ["purpose","The reason something exists or the plan for your life.","God made you on purpose, for a purpose."],
+        ["worship","To honor and love God with songs, prayer, and your whole heart.","We worship together every Sunday morning."],
+        ["kingdom","The land or people ruled by a king; God's kingdom is His rule of love.","We pray for God's kingdom to come."]
+      ],
+      3: [
+        ["extraordinary","Far beyond ordinary; truly remarkable and amazing.","She has an extraordinary gift for music."],
+        ["perseverance","Keeping on and never quitting, even when things get hard.","His perseverance carried him through the whole race."],
+        ["resurrection","Coming back to life after death, like Jesus on Easter morning.","The resurrection is the greatest news ever told."],
+        ["celebration","A joyful party or gathering to mark something special.","The whole town joined the celebration."],
+        ["magnificent","Grand, splendid, and breathtakingly beautiful.","What a magnificent sunrise over the water."],
+        ["compassionate","Feeling deep care for others and wanting to help them.","A compassionate nurse stayed late to comfort the child."],
+        ["steadfast","Firm, steady, and never changing or giving up.","Her steadfast faith never wavered."],
+        ["hallelujah","A joyful shout of praise that means Praise the Lord.","The choir lifted their voices and sang hallelujah."],
+        ["championship","The final contest that decides who is the champion.","He won the championship with the very last word."],
+        ["overcomer","Someone who wins over trouble and comes out stronger.","Through Christ, you are more than an overcomer."],
+        ["scripture","The holy writings of the Bible.","She reads a scripture every morning before school."],
+        ["everlasting","Lasting forever; never coming to an end.","God's love is everlasting, from morning to morning."],
+        ["thanksgiving","Gratefully thanking God; also the holiday of gratitude.","We shared our thanksgiving around the table."],
+        ["encouragement","Words that give someone hope, strength, and courage to keep going.","Your encouragement helped me believe I could do it."],
+        ["determination","A firm decision to keep going until you reach your goal.","With determination, she practiced every single day."],
+        ["imagination","The part of your mind that creates new ideas and pictures.","His imagination turned a cardboard box into a castle."],
+        ["constellation","A group of stars that forms a picture in the night sky.","That constellation looks like a hunter with a bow."],
+        ["kaleidoscope","A tube of mirrors and colored pieces that makes changing patterns.","The sunset was a kaleidoscope of pink and gold."],
+        ["righteousness","Living in a right and good way that pleases God.","He hungered for righteousness and sought to do right."],
+        ["testimony","The true story of what God has done in your life.","Her testimony encouraged everyone who heard it."],
+        ["sanctuary","A holy, safe place set apart for worship.","The sanctuary was quiet and full of peace."],
+        ["proclamation","A bold public announcement of important news.","The proclamation declared freedom for all."],
+        ["breakthrough","A sudden victory after being stuck for a long time.","After months of practice came the breakthrough."],
+        ["illumination","Light that helps you see clearly, in your eyes or in your understanding.","The teacher's words brought illumination to the whole class."]
+      ]
+    };
+    var CHAMPIONSHIP = [
+      ["extraordinary","Far beyond ordinary; truly remarkable and amazing.","She has an extraordinary gift for music."],
+      ["perseverance","Keeping on and never quitting, even when things get hard.","His perseverance carried him through the whole race."],
+      ["resurrection","Coming back to life after death, like Jesus on Easter morning.","The resurrection is the greatest news ever told."],
+      ["righteousness","Living in a right and good way that pleases God.","He hungered for righteousness and sought to do right."],
+      ["encouragement","Words that give someone hope, strength, and courage to keep going.","Your encouragement helped me believe I could do it."],
+      ["championship","The final contest that decides who is the champion.","He won the championship with the very last word."]
+    ];
+
+    /* ================= HELPERS ================= */
+    function $(id){ return document.getElementById(id); }
+    function el(tag, cls, text){ var e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
+    function shuffle(a){ var r=a.slice(); for(var i=r.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=r[i]; r[i]=r[j]; r[j]=t; } return r; }
+    function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+
+    /* ================= AUDIO (Web Audio, all synthesized in-page) ================= */
+    var AC = null, soundOn = true;
+    function ac(){
+      if(!soundOn) return null;
+      if(!AC){ try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; } }
+      if(AC && AC.state === "suspended"){ AC.resume(); }
+      return AC;
+    }
+    function tone(freq, dur, type, delay, vol, slideTo){
+      var ctx = ac(); if(!ctx) return;
+      var t = ctx.currentTime + (delay||0);
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = type||"sine"; o.frequency.setValueAtTime(freq, t);
+      if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t+dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol||0.22, t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t); o.stop(t+dur+0.05);
+    }
+    function sndClick(){ tone(660,0.07,"triangle",0,0.15); }
+    function sndTile(){ tone(520,0.06,"triangle",0,0.13); tone(780,0.05,"sine",0.03,0.08); }
+    function sndCorrect(){ [523,659,784,1047].forEach(function(f,i){ tone(f,0.22,"triangle",i*0.09,0.22); }); tone(1319,0.4,"sine",0.38,0.16); }
+    function sndGrace(){ [392,494,587].forEach(function(f,i){ tone(f,0.25,"sine",i*0.1,0.18); }); }
+    function sndMiss(){ tone(196,0.3,"sawtooth",0,0.10,150); tone(147,0.38,"sawtooth",0.12,0.09,110); }
+    function sndHop(){ tone(300,0.16,"sine",0,0.14,640); }
+    function sndTick(){ tone(880,0.05,"square",0,0.06); }
+    function sndFanfare(){
+      var seq=[[523,0],[523,0.14],[523,0.28],[659,0.42],[784,0.62],[659,0.86],[784,1.0],[1047,1.3],[784,1.62],[1047,1.9]];
+      seq.forEach(function(n){ tone(n[0],0.34,"triangle",n[1],0.24); tone(n[0]/2,0.34,"sine",n[1],0.12); });
+      tone(1319,0.9,"triangle",2.25,0.22); tone(1568,0.9,"sine",2.25,0.12);
+    }
+
+    /* ================= HOST VOICE (speech synthesis) ================= */
+    var voiceOn = true;
+    function speak(text, slow){
+      if(!voiceOn || !("speechSynthesis" in window)) return;
+      try{
+        window.speechSynthesis.cancel();
+        var u = new SpeechSynthesisUtterance(text);
+        u.rate = slow ? 0.72 : 0.95; u.pitch = 1.05;
+        window.speechSynthesis.speak(u);
+      }catch(e){}
+    }
+
+    /* ================= CONFETTI ================= */
+    var cv = $("confetti"), cx = cv.getContext("2d"), parts = [], confettiRunning = false;
+    function sizeCanvas(){ cv.width = window.innerWidth; cv.height = window.innerHeight; }
+    window.addEventListener("resize", sizeCanvas); sizeCanvas();
+    var CONF_COLORS = ["#D4AF37","#F0D98C","#C1272D","#F5F0E6","#2E9E6B","#FFC93C"];
+    function confettiBurst(n, rain){
+      for(var i=0;i<(n||90);i++){
+        parts.push({
+          x: rain ? Math.random()*cv.width : cv.width/2 + (Math.random()-0.5)*cv.width*0.5,
+          y: rain ? -20 - Math.random()*cv.height*0.4 : cv.height*0.42,
+          vx: (Math.random()-0.5)*(rain?2.4:11), vy: rain ? 2+Math.random()*3 : -(4+Math.random()*8),
+          w: 6+Math.random()*7, h: 8+Math.random()*9,
+          rot: Math.random()*Math.PI, vr:(Math.random()-0.5)*0.3,
+          color: CONF_COLORS[Math.floor(Math.random()*CONF_COLORS.length)],
+          life: 1, decay: rain ? 0.0022 : 0.0045
+        });
+      }
+      if(!confettiRunning){ confettiRunning = true; requestAnimationFrame(confettiStep); }
+    }
+    function confettiStep(){
+      cx.clearRect(0,0,cv.width,cv.height);
+      parts = parts.filter(function(p){ return p.life > 0 && p.y < cv.height + 40; });
+      parts.forEach(function(p){
+        p.x += p.vx; p.y += p.vy; p.vy += 0.14; p.vx *= 0.99; p.rot += p.vr; p.life -= p.decay;
+        cx.save(); cx.translate(p.x,p.y); cx.rotate(p.rot);
+        cx.globalAlpha = Math.max(0, Math.min(1, p.life));
+        cx.fillStyle = p.color; cx.fillRect(-p.w/2, -p.h/2, p.w, p.h * (0.4 + Math.abs(Math.sin(p.rot*2))*0.6));
+        cx.restore();
+      });
+      if(parts.length){ requestAnimationFrame(confettiStep); }
+      else { confettiRunning = false; cx.clearRect(0,0,cv.width,cv.height); }
+    }
+
+    /* ================= SETUP STATE ================= */
+    var MASCOTS = ["m-bee","m-lion","m-owl","m-rocket"];
+    var PCOLORS = ["var(--p1)","var(--p2)","var(--p3)","var(--p4)"];
+    var PCOLOR_HEX = ["#D4AF37","#C1272D","#2E9E6B","#3E7CB1"];
+    var DEFAULT_NAMES = ["Champion 1","Champion 2","Champion 3","Champion 4"];
+    var setup = { count:3, track:24, diff:"grow", timer:45,
+      players:[ {name:"", mascot:0}, {name:"", mascot:1}, {name:"", mascot:2}, {name:"", mascot:3} ] };
+
+    function segWire(id, attr, cb){
+      var seg = $(id);
+      seg.addEventListener("click", function(e){
+        var b = e.target.closest("button"); if(!b) return;
+        seg.querySelectorAll("button").forEach(function(x){ x.classList.remove("sel"); });
+        b.classList.add("sel"); sndClick(); cb(b.getAttribute(attr));
+      });
+    }
+    segWire("countSeg","data-n", function(v){ setup.count = parseInt(v,10); renderPlayerRows(); });
+    segWire("trackSeg","data-n", function(v){ setup.track = parseInt(v,10); });
+    segWire("diffSeg","data-d", function(v){ setup.diff = v; });
+    segWire("timerSeg","data-t", function(v){ setup.timer = parseInt(v,10); });
+
+    function renderPlayerRows(){
+      var box = $("playerRows"); box.innerHTML = "";
+      for(var i=0;i<setup.count;i++){
+        (function(idx){
+          var row = el("div","player-row");
+          row.style.setProperty("--pc", PCOLOR_HEX[idx]);
+          var dot = el("span","dot"); dot.style.background = PCOLOR_HEX[idx];
+          var input = document.createElement("input");
+          input.type = "text"; input.maxLength = 16; input.setAttribute("aria-label","Player "+(idx+1)+" name");
+          input.placeholder = DEFAULT_NAMES[idx]; input.value = setup.players[idx].name;
+          input.addEventListener("input", function(){ setup.players[idx].name = input.value; });
+          var mg = el("div","mascots");
+          MASCOTS.forEach(function(m, mi){
+            var b = document.createElement("button"); b.type="button";
+            b.setAttribute("aria-label","Choose mascot "+(mi+1));
+            if(setup.players[idx].mascot === mi) b.classList.add("sel");
+            b.innerHTML = '<svg viewBox="0 0 100 100"><use href="#'+m+'"/></svg>';
+            b.addEventListener("click", function(){
+              setup.players[idx].mascot = mi; sndClick(); renderPlayerRows();
+            });
+            mg.appendChild(b);
+          });
+          row.appendChild(dot); row.appendChild(input); row.appendChild(mg);
+          box.appendChild(row);
+        })(i);
+      }
+    }
+    renderPlayerRows();
+
+    /* ================= GAME STATE ================= */
+    var G = null;
+    function showScreen(id){
+      ["screen-setup","screen-game","screen-podium"].forEach(function(s){ $(s).classList.toggle("on", s===id); });
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+    function newDeck(level){ return shuffle(WORDS[level].map(function(w,i){ return i; })); }
+    function drawWord(level){
+      if(!G.decks[level].length) G.decks[level] = newDeck(level);
+      var idx = G.decks[level].pop();
+      var w = WORDS[level][idx];
+      return { word:w[0], def:w[1], sent:w[2], level:level };
+    }
+    function levelFor(pos){
+      if(setup.diff !== "grow") return parseInt(setup.diff,10);
+      var frac = pos / Math.max(1, G.track-1);
+      if(frac < 0.34) return 1;
+      if(frac < 0.72) return 2;
+      return 3;
+    }
+    function levelName(l, champ){
+      if(champ) return "CHAMPIONSHIP WORD";
+      return l===1 ? "WARM-UP WORD" : (l===2 ? "FAMILY MIX WORD" : "CHAMPION WORD");
+    }
+
+    function startGame(){
+      var players = [];
+      for(var i=0;i<setup.count;i++){
+        players.push({
+          name: (setup.players[i].name || "").trim() || DEFAULT_NAMES[i],
+          mascot: setup.players[i].mascot,
+          pos: 0, hearts: 3, streak: 0, correct: 0, attempts: 0, best: 0
+        });
+      }
+      G = {
+        players: players, track: setup.track, turn: 0, round: 1,
+        decks: {1:newDeck(1), 2:newDeck(2), 3:newDeck(3)},
+        champDeck: shuffle(CHAMPIONSHIP.map(function(w,i){ return i; })),
+        current: null, typed: "", graceUsed: false, hintUsed: false,
+        phase: "play", timerLeft: 0, timerId: null, lock: false
+      };
+      buildBoard(); buildTiles(); showScreen("screen-game");
+      sndFanfare();
+      speak("Welcome to the T R U Spelling Bee Showdown! Let's meet our spellers and get racing!");
+      nextTurn(true);
+    }
+
+    /* ================= BOARD ================= */
+    function spaceXY(i){
+      var cols = 8, rows = Math.ceil(G.track / cols);
+      var row = Math.floor(i / cols), colInRow = i % cols;
+      var col = (row % 2 === 0) ? colInRow : (cols - 1 - colInRow);
+      return { x: (col + 0.5) / cols * 100, y: (row + 0.5) / rows * 100 };
+    }
+    function buildBoard(){
+      var board = $("board");
+      board.querySelectorAll(".space,.token").forEach(function(n){ n.remove(); });
+      var cols = 8, rows = Math.ceil(G.track / cols);
+      var pts = [];
+      for(var i=0;i<G.track;i++){
+        var p = spaceXY(i); pts.push(p);
+        var s = el("div","space" + (i===0 ? " start" : "") + (i===G.track-1 ? " gate" : ""));
+        s.style.left = p.x + "%"; s.style.top = p.y + "%";
+        s.textContent = (i===G.track-1) ? "★" : String(i);
+        s.id = "space-" + i;
+        board.appendChild(s);
+      }
+      var line = $("trackLine");
+      line.setAttribute("points", pts.map(function(p){ return p.x + "," + p.y; }).join(" "));
+      $("trackSvg").setAttribute("viewBox","0 0 100 100");
+      line.setAttribute("stroke","var(--gold)");
+      line.setAttribute("vector-effect","non-scaling-stroke");
+      G.players.forEach(function(pl, idx){
+        var t = el("div","token"); t.id = "token-" + idx;
+        t.innerHTML = '<svg viewBox="0 0 100 100"><use href="#'+MASCOTS[pl.mascot]+'"/></svg>';
+        t.style.left = "0%"; t.style.top = "0%";
+        board.appendChild(t);
+        placeToken(idx, true);
+      });
+      updatePassed();
+    }
+    function placeToken(idx, instant){
+      var pl = G.players[idx];
+      var p = spaceXY(pl.pos);
+      var offs = [[-14,-16],[14,-16],[-14,14],[14,14]];
+      var o = offs[idx % 4];
+      var t = $("token-" + idx); if(!t) return;
+      if(instant) t.style.transition = "none";
+      t.style.left = "calc(" + p.x + "% + " + o[0] + "px)";
+      t.style.top = "calc(" + p.y + "% + " + o[1] + "px)";
+      if(instant){ void t.offsetWidth; t.style.transition = ""; }
+    }
+    function hopToken(idx){
+      var t = $("token-" + idx); if(!t) return;
+      t.classList.remove("hop"); void t.offsetWidth; t.classList.add("hop");
+    }
+    function updatePassed(){
+      var maxPos = Math.max.apply(null, G.players.map(function(p){ return p.pos; }));
+      for(var i=0;i<G.track;i++){
+        var s = $("space-" + i); if(s) s.classList.toggle("passed", i <= maxPos && i !== G.track-1);
+      }
+    }
+
+    /* ================= LEADERBOARD / HUD ================= */
+    function heartsHTML(pl){
+      var out = '<span style="margin-right:2px;">Honey</span>';
+      for(var i=0;i<3;i++){
+        out += '<span class="drop' + (i < pl.hearts ? "" : " off") + '"><svg viewBox="0 0 20 24"><use href="#m-drop"/></svg></span>';
+      }
+      return out;
+    }
+    function renderSide(){
+      var lb = $("leaderboard"); lb.innerHTML = "";
+      var order = G.players.map(function(p,i){ return i; }).sort(function(a,b){
+        var pa = G.players[a], pb = G.players[b];
+        return (pb.pos - pa.pos) || (pb.correct - pa.correct);
+      });
+      order.forEach(function(idx){
+        var pl = G.players[idx];
+        var row = el("div","lb-row" + (idx === G.turn && G.phase === "play" ? " active" : ""));
+        row.style.setProperty("--pc", PCOLOR_HEX[idx]);
+        row.innerHTML =
+          '<div class="av"><svg viewBox="0 0 100 100"><use href="#'+MASCOTS[pl.mascot]+'"/></svg></div>' +
+          '<div><div class="nm">' + esc(pl.name) +
+            (pl.streak >= 2 ? '<span class="streak">STREAK x' + pl.streak + '</span>' : '') +
+          '</div><div class="meta">' + pl.correct + ' spelled • ' + pl.hearts + ' honey drops</div></div>' +
+          '<div class="pos"><div class="pnum">' + pl.pos + '</div><div class="plbl">SPACE</div></div>';
+        lb.appendChild(row);
+      });
+      $("roundLabel").textContent = "Round " + G.round + " • Space " + (Math.max.apply(null, G.players.map(function(p){return p.pos;})) + 1) + " leads";
+      var cur = G.players[G.turn];
+      $("heartsBox").innerHTML = heartsHTML(cur);
+      $("turnAvatar").innerHTML = '<svg viewBox="0 0 100 100"><use href="#'+MASCOTS[cur.mascot]+'"/></svg>';
+      $("turnAvatar").style.setProperty("--pc", PCOLOR_HEX[G.turn]);
+      $("turnName").textContent = cur.name;
+      $("turnName").style.color = PCOLOR_HEX[G.turn];
+    }
+
+    /* ================= TILES & SLOTS ================= */
+    function buildTiles(){
+      var box = $("tiles"); box.innerHTML = "";
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(function(ch){
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "tile"; b.textContent = ch; b.setAttribute("data-ch", ch);
+        b.setAttribute("aria-label","Letter " + ch);
+        b.addEventListener("click", function(){ typeLetter(ch); });
+        box.appendChild(b);
+      });
+    }
+    function renderSlots(){
+      var box = $("slots"); box.innerHTML = "";
+      var w = G.current.word;
+      for(var i=0;i<w.length;i++){
+        var s = el("div","slot");
+        var ch = G.typed[i];
+        if(ch){ s.textContent = ch; s.classList.add("fill"); }
+        else if(G.hintUsed && i === 0){ s.textContent = w[0]; s.classList.add("hint"); }
+        box.appendChild(s);
+      }
+      $("wordCount").textContent = "Your word has " + w.length + " letters" +
+        (G.graceUsed ? " • Grace Card active — you've got this!" : "") +
+        (G.hintUsed ? " • First letter revealed" : "");
+      document.querySelectorAll(".tile").forEach(function(t){
+        t.classList.toggle("used", G.typed.indexOf(t.getAttribute("data-ch")) !== -1);
+      });
+    }
+    function typeLetter(ch){
+      if(!G || G.lock || G.phase !== "play") return;
+      if(G.typed.length >= G.current.word.length) return;
+      G.typed += ch; sndTile(); renderSlots();
+    }
+    function backspace(){
+      if(!G || G.lock || G.phase !== "play") return;
+      if(!G.typed.length) return;
+      G.typed = G.typed.slice(0,-1); sndClick(); renderSlots();
+    }
+    document.addEventListener("keydown", function(e){
+      if(!G || G.phase !== "play" || !$("screen-game").classList.contains("on")) return;
+      if(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+      if(/^[a-zA-Z]$/.test(e.key)) typeLetter(e.key.toUpperCase());
+      else if(e.key === "Backspace"){ e.preventDefault(); backspace(); }
+      else if(e.key === "Enter"){ e.preventDefault(); checkSpelling(); }
+    });
+
+    /* ================= TIMER ================= */
+    function stopTimer(){ if(G && G.timerId){ clearInterval(G.timerId); G.timerId = null; } }
+    function startTimer(){
+      stopTimer();
+      var wrap = $("timerWrap");
+      if(!setup.timer){ wrap.style.display = "none"; return; }
+      wrap.style.display = "flex";
+      G.timerLeft = setup.timer;
+      paintTimer();
+      G.timerId = setInterval(function(){
+        G.timerLeft--; paintTimer();
+        if(G.timerLeft <= 5 && G.timerLeft > 0) sndTick();
+        if(G.timerLeft <= 0){ stopTimer(); onTimeout(); }
+      }, 1000);
+    }
+    function paintTimer(){
+      $("timerNum").textContent = Math.max(0, G.timerLeft);
+      $("timerNum").classList.toggle("low", G.timerLeft <= 10);
+      var pct = setup.timer ? (G.timerLeft / setup.timer * 100) : 0;
+      var fill = $("timerFill");
+      fill.style.width = pct + "%";
+      fill.classList.toggle("low", G.timerLeft <= 10);
+    }
+    function onTimeout(){
+      if(G.lock || G.phase !== "play") return;
+      bubbleSay("Time's up — but grace is bigger than the clock!");
+      handleWrong(true);
+    }
+
+    /* ================= HOST / BUBBLE ================= */
+    function bubbleSay(text){ $("bubbleSay").textContent = text; }
+    function setPill(level, champ){
+      var pill = $("lvlPill");
+      pill.textContent = levelName(level, champ);
+      pill.className = "lvl-pill " + (champ ? "champ" : "l" + level);
+    }
+
+    /* ================= TURN FLOW ================= */
+    function nextTurn(first){
+      if(!first){
+        G.turn = (G.turn + 1) % G.players.length;
+        if(G.turn === 0) G.round++;
+      }
+      var pl = G.players[G.turn];
+      var atGate = pl.pos >= G.track - 1;
+      var cw;
+      if(atGate){
+        if(!G.champDeck.length) G.champDeck = shuffle(CHAMPIONSHIP.map(function(w,i){ return i; }));
+        var ci = G.champDeck.pop(); var c = CHAMPIONSHIP[ci];
+        cw = { word:c[0], def:c[1], sent:c[2], level:3, champ:true };
+      } else {
+        cw = drawWord(levelFor(pl.pos)); cw.champ = false;
+      }
+      G.current = cw; G.typed = ""; G.graceUsed = false; G.hintUsed = false; G.lock = false; G.pendingGrace = false;
+      setPill(cw.level, cw.champ);
+      $("bubbleDef").classList.remove("show");
+      $("bubbleSent").classList.remove("show");
+      $("btnGrace").style.display = "none";
+      $("btnCheck").disabled = false;
+      if(cw.champ){
+        bubbleSay(pl.name + " stands at the TROPHY GATE! One Championship Word for the win. Your word is…");
+        $("turnSub").textContent = "The Championship Word decides it all!";
+      } else {
+        bubbleSay(pl.name + ", step up to the microphone! Your word is… listen closely!");
+        $("turnSub").textContent = "Spell it right and race ahead " + cw.level + (cw.level === 1 ? " space!" : " spaces!");
+      }
+      renderSlots(); renderSide(); startTimer();
+      setTimeout(function(){ speak("Your word is: " + cw.word + "."); }, first ? 900 : 350);
+    }
+
+    function showFlash(big, small, word, red, ms, done){
+      var f = $("flash");
+      $("flashBig").textContent = big;
+      $("flashBig").classList.toggle("red", !!red);
+      $("flashSmall").textContent = small || "";
+      $("flashWord").textContent = word || "";
+      f.classList.add("show");
+      setTimeout(function(){ f.classList.remove("show"); if(done) done(); }, ms || 2100);
+    }
+
+    function checkSpelling(){
+      if(!G || G.lock || G.phase !== "play") return;
+      var pl = G.players[G.turn], cw = G.current;
+      if(G.typed.length < cw.word.length){
+        bubbleSay("Almost — your word has " + cw.word.length + " letters. Fill every honeycomb slot!");
+        sndClick(); return;
+      }
+      stopTimer(); G.lock = true;
+      pl.attempts++;
+      var guess = G.typed.toLowerCase();
+      if(guess === cw.word){
+        onCorrect();
+      } else {
+        handleWrong(false);
+      }
+    }
+
+    function handleWrong(timedOut){
+      var pl = G.players[G.turn], cw = G.current;
+      stopTimer();
+      var slots = $("slots").children;
+      for(var i=0;i<slots.length;i++){ if(G.typed[i]) slots[i].classList.add("bad"); }
+      if(!G.graceUsed){
+        G.lock = false;
+        G.graceUsed = true;
+        sndGrace();
+        bubbleSay((timedOut ? "Out of time" : "So close") + ", " + pl.name + "! In this house we spell with GRACE. Here's your Grace Card — take a breath and try once more.");
+        speak("So close! Here is your grace card. Try once more.");
+        $("btnGrace").style.display = "inline-block";
+        G.pendingGrace = true;
+        renderSlots();
+        return;
+      }
+      onMiss();
+    }
+
+    function useGrace(){
+      if(!G || !G.pendingGrace) return;
+      G.pendingGrace = false; G.graceUsed = true;
+      $("btnGrace").style.display = "none";
+      G.typed = ""; G.hintUsed = true; G.lock = false;
+      sndGrace(); confettiBurst(24, false);
+      bubbleSay("Grace Card played! The first letter is showing, and the clock is fresh. You were born for this, " + G.players[G.turn].name + "!");
+      speak("Grace card! The first letter is showing. You've got this.");
+      renderSlots(); startTimer();
+    }
+
+    function onCorrect(){
+      var pl = G.players[G.turn], cw = G.current;
+      pl.correct++; pl.streak++; pl.best = Math.max(pl.best, pl.streak);
+      var slots = $("slots").children;
+      for(var i=0;i<slots.length;i++){ slots[i].classList.add("good"); }
+      sndCorrect();
+      if(cw.champ){
+        showFlash("CHAMPION!!", pl.name + " spelled the Championship Word and takes the trophy!", cw.word, false, 2600, function(){ endGame(); });
+        confettiBurst(160, true);
+        speak("Champion! " + pl.name + " spelled " + cw.word + " and wins the T R U Spelling Bee Showdown!");
+        G.phase = "over"; renderSide();
+        return;
+      }
+      var move = G.graceUsed ? 1 : cw.level;
+      var praise = ["Outstanding","Brilliant","Superb","Mighty spelling","What a wordsmith"][Math.floor(Math.random()*5)];
+      showFlash(praise.toUpperCase() + "!", pl.name + " spelled it " + (G.graceUsed ? "with grace — forward 1 space!" : "on the first try — forward " + move + "!"), cw.word, false, 2000);
+      speak(praise + "! " + pl.name + " spelled " + cw.word + " correctly!");
+      confettiBurst(60, false);
+      if(pl.streak > 0 && pl.streak % 3 === 0 && pl.hearts < 3){
+        pl.hearts++;
+        setTimeout(function(){ bubbleSay("Three in a row! " + pl.name + "'s honey jar refills — +1 Honey Drop!"); }, 2050);
+      }
+      setTimeout(function(){
+        var target = Math.min(pl.pos + move, G.track - 1);
+        var step = function(){
+          if(pl.pos < target){
+            pl.pos++; placeToken(G.turn, false); hopToken(G.turn); sndHop();
+            setTimeout(step, 480);
+          } else {
+            updatePassed(); renderSide();
+            if(pl.pos >= G.track - 1){
+              setTimeout(function(){
+                bubbleSay(pl.name + " reached the TROPHY GATE! Next turn: one Championship Word for all the glory!");
+                speak(pl.name + " reached the trophy gate!");
+              }, 300);
+            }
+            G.lock = false;
+            setTimeout(function(){ if(G.phase === "play") nextTurn(false); }, 650);
+          }
+        };
+        step();
+      }, 2050);
+      renderSide();
+    }
+
+    function onMiss(){
+      var pl = G.players[G.turn], cw = G.current;
+      pl.streak = 0;
+      sndMiss();
+      speak("The word was " + cw.word + ". " + cw.word.split("").join(" ") + ".");
+      var slideBack = false;
+      if(pl.hearts > 0){ pl.hearts--; }
+      else if(pl.pos > 0){ slideBack = true; }
+      showFlash("GREAT TRY!", "The word was:", cw.word, true, 2400);
+      bubbleSay("The word was " + cw.word.toUpperCase() + " — " + cw.word.split("").join("-").toUpperCase() + ". " +
+        (slideBack ? "The honey jar was empty, so " + pl.name + " slides back one space. Shake it off, champion!"
+                   : pl.name + " loses one Honey Drop. Shake it off, champion — your turn will come again!"));
+      setTimeout(function(){
+        if(slideBack){ pl.pos--; placeToken(G.turn, false); hopToken(G.turn); }
+        updatePassed(); renderSide(); G.lock = false;
+        setTimeout(function(){ if(G.phase === "play") nextTurn(false); }, 500);
+      }, 2450);
+      renderSide();
+    }
+
+    /* ================= PODIUM ================= */
+    function endGame(){
+      stopTimer();
+      sndFanfare();
+      confettiBurst(220, true);
+      setTimeout(function(){ confettiBurst(160, true); }, 900);
+      var order = G.players.map(function(p,i){ return i; }).sort(function(a,b){
+        var pa = G.players[a], pb = G.players[b];
+        return (pb.pos - pa.pos) || (pb.correct - pa.correct) || (pb.best - pa.best);
+      });
+      var places = ["1ST PLACE","2ND PLACE","3RD PLACE","4TH PLACE"];
+      var cls = ["first","second","third","rest"];
+      var pod = $("podium"); pod.innerHTML = "";
+      /* visual order: 2nd, 1st, 3rd, 4th for a classic podium feel */
+      var visual = order.length >= 3 ? [order[1], order[0], order[2]].concat(order.slice(3)) : order.slice();
+      visual.forEach(function(idx){
+        var pl = G.players[idx]; var rank = order.indexOf(idx);
+        var d = el("div","pod " + cls[rank]);
+        d.innerHTML =
+          '<div class="place">' + places[rank] + '</div>' +
+          '<div class="av"><svg viewBox="0 0 100 100"><use href="#'+MASCOTS[pl.mascot]+'"/></svg></div>' +
+          '<div class="pn">' + esc(pl.name) + '</div>' +
+          '<div class="pm">' + pl.correct + ' words spelled • best streak x' + pl.best + '</div>';
+        pod.appendChild(d);
+      });
+      showScreen("screen-podium");
+      var champ = G.players[order[0]];
+      speak("Congratulations to our champion, " + champ.name + "! And great spelling, everybody!");
+    }
+
+    /* ================= WIRING ================= */
+    $("btnStart").addEventListener("click", function(){ ac(); sndClick(); startGame(); });
+    $("btnCheck").addEventListener("click", checkSpelling);
+    $("btnBack").addEventListener("click", backspace);
+    $("btnGrace").addEventListener("click", useGrace);
+    $("btnHear").addEventListener("click", function(){
+      if(!G || !G.current) return; sndClick();
+      speak("Your word is: " + G.current.word + ".", true);
+      bubbleSay("Listen again… the word is pronounced nice and slow. Tap the letters when you're ready!");
+    });
+    $("btnDef").addEventListener("click", function(){
+      if(!G || !G.current) return; sndClick();
+      var d = $("bubbleDef");
+      d.innerHTML = "<b>Definition:</b> " + esc(G.current.def);
+      d.classList.add("show");
+      speak("Definition: " + G.current.def);
+    });
+    $("btnSent").addEventListener("click", function(){
+      if(!G || !G.current) return; sndClick();
+      var s = $("bubbleSent");
+      s.innerHTML = "<b>In a sentence:</b> " + esc(G.current.sent.replace(new RegExp(G.current.word, "i"), "_____"));
+      s.classList.add("show");
+      speak(G.current.sent);
+    });
+    $("btnHint").addEventListener("click", function(){
+      if(!G || !G.current || G.hintUsed) return; sndClick();
+      G.hintUsed = true; renderSlots();
+      bubbleSay("Hint unlocked! The first letter of your word is " + G.current.word[0].toUpperCase() + ".");
+      speak("Hint: the first letter is " + G.current.word[0] + ".");
+    });
+    $("btnSkip").addEventListener("click", function(){
+      if(!G || G.phase !== "play" || G.lock) return;
+      stopTimer();
+      bubbleSay("Host's call — fresh word, fresh start! The word was " + G.current.word.toUpperCase() + ".");
+      nextTurn(false);
+    });
+    $("btnRestart").addEventListener("click", function(){ stopTimer(); sndClick(); startGame(); });
+    $("btnNewPlayers").addEventListener("click", function(){ stopTimer(); G = null; showScreen("screen-setup"); });
+    $("btnAgain").addEventListener("click", function(){ sndClick(); startGame(); });
+    $("btnPodiumSetup").addEventListener("click", function(){ G = null; showScreen("screen-setup"); });
+
+    $("btnSound").addEventListener("click", function(){
+      soundOn = !soundOn;
+      this.textContent = "Sound: " + (soundOn ? "ON" : "OFF");
+      this.setAttribute("aria-pressed", soundOn ? "true" : "false");
+      if(soundOn){ ac(); sndCorrect(); }
+    });
+    $("btnSpeak").addEventListener("click", function(){
+      voiceOn = !voiceOn;
+      this.textContent = "Host Voice: " + (voiceOn ? "ON" : "OFF");
+      this.setAttribute("aria-pressed", voiceOn ? "true" : "false");
+      if(!voiceOn && "speechSynthesis" in window) window.speechSynthesis.cancel();
+      if(voiceOn) speak("Host voice on!");
+    });
+    $("btnTestSound").addEventListener("click", function(){
+      ac(); sndCorrect();
+      setTimeout(sndFanfare, 450);
+      speak("Test sound! Buzzy the Bee is ready to host the showdown!");
+    });
+    $("btnFull").addEventListener("click", function(){
+      try{
+        if(document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+      }catch(e){}
+    });
+    window.addEventListener("resize", function(){ if(G) G.players.forEach(function(pl, i){ placeToken(i, true); }); });
+    </script>
+  </body>
+</html>

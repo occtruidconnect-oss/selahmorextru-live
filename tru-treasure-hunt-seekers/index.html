@@ -1,0 +1,1359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>TRU Treasure Hunt — Seeker's Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --gold:#B29555; --gold-bright:#D4AF37; --gold-pale:#E9CE7A;
+    --crimson:#8C0000; --crimson-deep:#5A0000;
+    --cream:#F5F0E6;
+    --page:#F8F0DA; --page-edge:#EAD9AE; --page-ink:#2B1E08;
+    --bg:#0B0703; --bg2:#17100A; --card:#1D1409; --card2:#261A0E;
+    --ink:#F5F0E6; --ink-soft:#D9CBA6; --ink-faint:#A89372;
+    --line:rgba(212,175,55,.28); --line-soft:rgba(212,175,55,.14);
+    --shadow:0 10px 30px rgba(0,0,0,.55);
+    --btn-ink:#1A1204;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#F3ECDC; --bg2:#EFE5CF; --card:#FFFDF6; --card2:#FBF3DF;
+      --ink:#241A08; --ink-soft:#5C4A24; --ink-faint:#8A744A;
+      --line:rgba(140,100,20,.35); --line-soft:rgba(140,100,20,.18);
+      --shadow:0 10px 26px rgba(90,60,0,.18);
+      --btn-ink:#1A1204;
+    }
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Jost",system-ui,sans-serif;
+    font-size:17px; line-height:1.5;
+    overflow-x:hidden;
+  }
+  button{font-family:inherit; cursor:pointer;}
+  .wrap{max-width:560px; margin:0 auto; padding:0 16px 64px;}
+  .screen{display:none;}
+  .screen.on{display:block; animation:fadeIn .35s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+  @media (prefers-reduced-motion: reduce){
+    .screen.on{animation:none;}
+    .rays{animation:none !important;}
+    .sparkle{animation:none !important; display:none !important;}
+    .pulse{animation:none !important;}
+  }
+
+  /* ---------- Sunburst hero ---------- */
+  .hero{position:relative; text-align:center; padding:38px 10px 8px; overflow:hidden;}
+  .rays{
+    position:absolute; left:50%; top:-190px; width:520px; height:520px; margin-left:-260px;
+    border-radius:50%; pointer-events:none; opacity:.5;
+    background:conic-gradient(from 0deg,
+      rgba(212,175,55,.20) 0deg 9deg, transparent 9deg 24deg,
+      rgba(212,175,55,.20) 24deg 33deg, transparent 33deg 48deg,
+      rgba(212,175,55,.20) 48deg 57deg, transparent 57deg 72deg,
+      rgba(212,175,55,.20) 72deg 81deg, transparent 81deg 96deg,
+      rgba(212,175,55,.20) 96deg 105deg, transparent 105deg 120deg,
+      rgba(212,175,55,.20) 120deg 129deg, transparent 129deg 144deg,
+      rgba(212,175,55,.20) 144deg 153deg, transparent 153deg 168deg,
+      rgba(212,175,55,.20) 168deg 177deg, transparent 177deg 192deg,
+      rgba(212,175,55,.20) 192deg 201deg, transparent 201deg 216deg,
+      rgba(212,175,55,.20) 216deg 225deg, transparent 225deg 240deg,
+      rgba(212,175,55,.20) 240deg 249deg, transparent 249deg 264deg,
+      rgba(212,175,55,.20) 264deg 273deg, transparent 273deg 288deg,
+      rgba(212,175,55,.20) 288deg 297deg, transparent 297deg 312deg,
+      rgba(212,175,55,.20) 312deg 321deg, transparent 321deg 336deg,
+      rgba(212,175,55,.20) 336deg 345deg, transparent 345deg 360deg);
+    -webkit-mask-image:radial-gradient(circle, #000 0%, transparent 68%);
+            mask-image:radial-gradient(circle, #000 0%, transparent 68%);
+    animation:spin 70s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .hero .cross{position:relative; font-size:30px; color:var(--gold-bright); text-shadow:0 0 18px rgba(212,175,55,.7); line-height:1;}
+  .hero h1{
+    position:relative; font-family:"Cinzel",serif; font-weight:900;
+    font-size:clamp(30px,8.4vw,44px); line-height:1.08; margin:10px 0 4px; letter-spacing:.01em;
+  }
+  .hero h1 .gold{color:var(--gold-bright);}
+  .hero .edition{position:relative; font-family:"Cinzel",serif; font-weight:700; letter-spacing:.34em; font-size:12px; color:var(--crimson); text-transform:uppercase;}
+  @media (prefers-color-scheme: dark){ .hero .edition{color:#E58A8A;} }
+  .hero .tag{position:relative; margin-top:12px; font-size:12.5px; letter-spacing:.30em; font-weight:600; color:var(--ink-soft);}
+  .hero .sub{position:relative; margin:10px auto 0; max-width:420px; color:var(--ink-soft); font-size:16px;}
+  .hero .be{position:relative; margin-top:10px; font-family:"EB Garamond",serif; font-style:italic; font-size:19px; color:var(--gold);}
+
+  /* ---------- Cards & controls ---------- */
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; margin-top:16px; box-shadow:var(--shadow);}
+  .card h2{font-family:"Cinzel",serif; font-size:19px; margin:0 0 4px; font-weight:700;}
+  .card .hintline{color:var(--ink-soft); font-size:14.5px; margin:0 0 12px;}
+  .seg{display:flex; flex-wrap:wrap; gap:8px;}
+  .seg button{
+    flex:1 1 auto; min-height:52px; padding:10px 12px; border-radius:10px;
+    background:var(--card2); color:var(--ink); border:1.5px solid var(--line-soft);
+    font-size:15.5px; font-weight:600; line-height:1.25;
+  }
+  .seg button small{display:block; font-weight:400; font-size:12px; color:var(--ink-faint); margin-top:2px;}
+  .seg button.sel{border-color:var(--gold-bright); background:linear-gradient(180deg, rgba(212,175,55,.22), rgba(212,175,55,.08)); color:var(--ink); box-shadow:0 0 0 1px var(--gold-bright) inset, 0 4px 14px rgba(212,175,55,.18);}
+  .seg button.sel small{color:var(--ink-soft);}
+  .seg.two button{flex:1 1 40%;}
+  .rowline{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 0;}
+  .rowline .lbl{font-weight:600; font-size:16px;}
+  .rowline .lbl small{display:block; font-weight:400; color:var(--ink-soft); font-size:13px;}
+  .switch{display:inline-block; width:60px; height:34px; flex:0 0 auto;}
+  .switch input{
+    -webkit-appearance:none; appearance:none; position:relative; display:block;
+    width:60px; height:34px; margin:0; border-radius:20px; cursor:pointer;
+    background:var(--card2); border:1.5px solid var(--line); transition:.2s;
+  }
+  .switch input::after{content:""; position:absolute; top:3px; left:3px; width:26px; height:26px; border-radius:50%; background:var(--ink-faint); transition:.2s;}
+  .switch input:checked{background:rgba(212,175,55,.25); border-color:var(--gold-bright);}
+  .switch input:checked::after{left:29px; background:var(--gold-bright);}
+  .names{display:none; margin-top:10px;}
+  .names.on{display:block;}
+  .names input{
+    width:100%; min-height:50px; margin-top:8px; padding:10px 14px; border-radius:10px;
+    background:var(--card2); border:1.5px solid var(--line-soft); color:var(--ink); font-size:16px; font-family:inherit;
+  }
+  .btn{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    width:100%; min-height:58px; border-radius:12px; border:none;
+    font-size:18px; font-weight:700; letter-spacing:.02em; padding:12px 18px;
+  }
+  .btn-gold{background:linear-gradient(180deg, var(--gold-pale), var(--gold-bright) 55%, var(--gold)); color:var(--btn-ink); box-shadow:0 8px 22px rgba(212,175,55,.30);}
+  .btn-gold:active{transform:translateY(1px);}
+  .btn-ghost{background:transparent; color:var(--ink); border:1.5px solid var(--line); box-shadow:none;}
+  .btn-crimson{background:linear-gradient(180deg, #A31212, var(--crimson) 60%, var(--crimson-deep)); color:#FFF6E8; box-shadow:0 8px 22px rgba(140,0,0,.35);}
+  .btnrow{display:flex; gap:10px; margin-top:14px;}
+  .btnrow .btn{flex:1;}
+  .mini{font-size:14px; color:var(--ink-faint); text-align:center; margin-top:12px;}
+  .mini b{color:var(--gold);}
+
+  /* ---------- HUD ---------- */
+  .hud{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;}
+  .chip{
+    flex:1 1 auto; text-align:center; background:var(--card); border:1px solid var(--line-soft);
+    border-radius:10px; padding:8px 6px; font-size:13px; color:var(--ink-soft); min-width:78px;
+  }
+  .chip b{display:block; font-size:18px; color:var(--ink); font-family:"Cinzel",serif;}
+  .chip .gem{color:var(--gold-bright);}
+  .turnbar{
+    margin-top:12px; text-align:center; font-family:"Cinzel",serif; font-weight:700; letter-spacing:.06em;
+    color:var(--gold-bright); font-size:16px;
+  }
+  .timerbar{text-align:center; font-size:14px; color:var(--ink-soft); margin-top:4px; min-height:20px;}
+
+  /* ---------- Clue card ---------- */
+  .cluecard{
+    margin-top:12px; border-radius:14px; padding:18px; position:relative; overflow:hidden;
+    background:linear-gradient(160deg, #2A0D0D, var(--crimson-deep) 70%);
+    border:1px solid rgba(212,175,55,.45); color:#FFF3E0; box-shadow:var(--shadow);
+  }
+  @media (prefers-color-scheme: light){ .cluecard{background:linear-gradient(160deg,#7E0B0B,#5A0000 75%);} }
+  .cluecard .ctype{
+    display:inline-block; font-size:12px; font-weight:700; letter-spacing:.22em; text-transform:uppercase;
+    background:rgba(212,175,55,.18); border:1px solid rgba(212,175,55,.55); color:var(--gold-pale);
+    padding:5px 10px; border-radius:20px;
+  }
+  .cluecard .ref{float:right; font-family:"EB Garamond",serif; font-style:italic; font-size:16px; color:#F3D9A4; margin-top:3px;}
+  .cluecard p{font-family:"EB Garamond",serif; font-size:22px; line-height:1.4; margin:12px 0 4px;}
+  .cluecard .listen{
+    margin-top:10px; background:rgba(255,255,255,.10); border:1px solid rgba(212,175,55,.5); color:#FFEFC4;
+    border-radius:10px; min-height:48px; padding:8px 16px; font-size:15.5px; font-weight:600;
+  }
+  .letterbox{margin-top:10px; font-size:15px; color:var(--gold-pale); display:none;}
+  .letterbox.on{display:block;}
+
+  /* ---------- The open book ---------- */
+  .book{
+    margin-top:14px; background:linear-gradient(180deg, var(--page), #F3E7C8);
+    border-radius:8px 14px 14px 8px; color:var(--page-ink);
+    box-shadow:var(--shadow), inset 14px 0 24px -12px rgba(120,84,10,.45);
+    border:1px solid var(--page-edge); padding:20px 18px 16px 24px; position:relative;
+  }
+  .book::before{content:""; position:absolute; left:9px; top:10px; bottom:10px; width:2px; background:linear-gradient(180deg, transparent, rgba(140,100,20,.4), transparent);}
+  .book .bookref{font-family:"Cinzel",serif; font-weight:700; font-size:14px; letter-spacing:.14em; text-transform:uppercase; color:#7A5A10; text-align:center; margin-bottom:10px;}
+  .verse{margin:0 0 12px;}
+  .verse .vnum{font-family:"Cinzel",serif; font-size:11.5px; font-weight:700; color:var(--crimson); vertical-align:super; margin-right:5px; letter-spacing:.03em;}
+  .verse p{display:inline; font-family:"EB Garamond",serif; font-size:21px; line-height:1.62;}
+  .w{
+    display:inline; background:none; border:none; padding:2px 1px; margin:0;
+    font-family:"EB Garamond",serif; font-size:21px; line-height:1.62; color:var(--page-ink);
+    border-radius:5px; min-height:0;
+  }
+  .w:active{background:rgba(212,175,55,.35);}
+  .w.glow{background:rgba(212,175,55,.30); box-shadow:0 0 0 2px rgba(178,149,85,.45);}
+  .w.warm{background:rgba(212,175,55,.16);}
+  .w.found{
+    background:linear-gradient(180deg, var(--gold-pale), var(--gold-bright));
+    color:#231600; font-weight:700; box-shadow:0 0 14px rgba(212,175,55,.9), 0 0 0 2px #8A6D1F;
+    padding:2px 5px;
+  }
+  .w.pulse{animation:pulseGold 1s ease-in-out infinite; background:rgba(212,175,55,.45); box-shadow:0 0 0 2px var(--gold);}
+  @keyframes pulseGold{0%,100%{box-shadow:0 0 0 2px var(--gold), 0 0 4px rgba(212,175,55,.4);} 50%{box-shadow:0 0 0 3px var(--gold-bright), 0 0 18px rgba(212,175,55,.95);}}
+  .w.wiggle{animation:wig .4s ease;}
+  @keyframes wig{0%,100%{transform:none;} 25%{transform:translateX(-2px) rotate(-1deg);} 75%{transform:translateX(2px) rotate(1deg);}}
+  .pager{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;}
+  .pager button{
+    min-height:52px; padding:8px 18px; border-radius:10px; font-size:16px; font-weight:700;
+    background:var(--card); color:var(--ink); border:1.5px solid var(--line);
+  }
+  .pager button:disabled{opacity:.35;}
+  .pager .pinfo{font-size:14px; color:var(--ink-soft); font-weight:600;}
+  .feedback{
+    margin-top:12px; min-height:30px; text-align:center; font-family:"EB Garamond",serif;
+    font-size:20px; font-style:italic; color:var(--gold);
+  }
+  @media (prefers-color-scheme: light){ .feedback{color:#8A6D1F;} }
+  .hintbtn{
+    width:100%; min-height:54px; margin-top:6px; border-radius:12px;
+    background:var(--card); border:1.5px dashed var(--gold); color:var(--ink);
+    font-size:16.5px; font-weight:600;
+  }
+  .hintbtn:disabled{opacity:.45; border-style:solid;}
+
+  /* ---------- Found / Dig Deeper ---------- */
+  .celebrate{position:relative; text-align:center; padding:26px 8px 4px;}
+  .celebrate h2{font-family:"Cinzel",serif; font-size:30px; margin:6px 0 2px; color:var(--gold-bright);}
+  .celebrate .gemline{font-size:17px; color:var(--ink-soft);}
+  .celebrate .gemline b{color:var(--gold-bright); font-size:20px;}
+  .sparkle{position:absolute; width:8px; height:8px; border-radius:50%; background:var(--gold-bright); pointer-events:none; animation:spark 1.6s ease-out forwards; box-shadow:0 0 8px var(--gold-bright);}
+  @keyframes spark{0%{opacity:1; transform:translateY(0) scale(1);} 100%{opacity:0; transform:translateY(-90px) scale(.3);}}
+  .foundverse{
+    margin-top:14px; background:linear-gradient(180deg, var(--page), #F3E7C8); color:var(--page-ink);
+    border:1px solid var(--page-edge); border-radius:12px; padding:20px; box-shadow:var(--shadow);
+  }
+  .foundverse p{font-family:"EB Garamond",serif; font-size:22px; line-height:1.5; margin:0;}
+  .foundverse p b{color:var(--crimson-deep); background:rgba(212,175,55,.35); padding:0 4px; border-radius:4px;}
+  @media (prefers-color-scheme: dark){ .foundverse p b{color:#7A0D0D;} }
+  .foundverse .fvref{margin-top:10px; font-family:"Cinzel",serif; font-weight:700; letter-spacing:.08em; font-size:15px; color:#7A5A10;}
+  .dig{margin-top:14px;}
+  .dig h3{font-family:"Cinzel",serif; margin:0 0 8px; font-size:18px;}
+  .dig h3 .amp{color:var(--gold-bright);}
+  .dig p{margin:0 0 12px; color:var(--ink-soft); font-size:16px;}
+  .dig p b{color:var(--ink);}
+  .orig{
+    background:var(--card2); border:1px solid var(--line-soft); border-radius:10px; padding:12px 14px; margin-bottom:12px;
+  }
+  .orig .oword{font-family:"EB Garamond",serif; font-size:21px; font-weight:600; color:var(--gold-bright);}
+  @media (prefers-color-scheme: light){ .orig .oword{color:#8A6D1F;} }
+  .orig .omean{color:var(--ink-soft); font-size:15px;}
+  .truth{
+    margin-top:14px; border-radius:12px; padding:16px 18px;
+    background:linear-gradient(150deg, rgba(140,0,0,.20), rgba(140,0,0,.06));
+    border:1px solid rgba(140,0,0,.45);
+  }
+  @media (prefers-color-scheme: dark){ .truth{border-color:rgba(229,138,138,.4);} }
+  .truth .tlabel{font-size:12px; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--crimson);}
+  @media (prefers-color-scheme: dark){ .truth .tlabel{color:#E58A8A;} }
+  .truth p{font-family:"EB Garamond",serif; font-size:20.5px; line-height:1.45; margin:6px 0 0;}
+
+  /* ---------- Curtain / Vault / Finale ---------- */
+  .curtain{text-align:center; padding:56px 10px 10px;}
+  .curtain .big{font-size:52px;}
+  .curtain h2{font-family:"Cinzel",serif; font-size:27px; margin:10px 0 6px;}
+  .curtain p{color:var(--ink-soft); max-width:380px; margin:0 auto 20px;}
+  .vaultitem{background:var(--card); border:1px solid var(--line-soft); border-radius:12px; padding:14px 16px; margin-top:10px;}
+  .vaultitem p{font-family:"EB Garamond",serif; font-size:19px; line-height:1.45; margin:0;}
+  .vaultitem .vmeta{display:flex; justify-content:space-between; align-items:center; margin-top:8px; gap:10px;}
+  .vaultitem .vref{font-family:"Cinzel",serif; font-weight:700; font-size:13.5px; letter-spacing:.06em; color:var(--gold);}
+  .vaultitem .vhear{background:var(--card2); border:1px solid var(--line); color:var(--ink); border-radius:8px; min-height:44px; padding:6px 14px; font-weight:600; font-size:14.5px;}
+  .standings{margin-top:8px;}
+  .standings .srow{
+    display:flex; justify-content:space-between; align-items:center; padding:13px 6px;
+    border-bottom:1px solid var(--line-soft); font-size:18px;
+  }
+  .standings .srow:first-child{font-weight:700;}
+  .standings .srow .sg{color:var(--gold-bright); font-family:"Cinzel",serif; font-weight:700;}
+  .empty{text-align:center; color:var(--ink-soft); padding:26px 10px; font-family:"EB Garamond",serif; font-size:19px; font-style:italic;}
+  .foot{text-align:center; margin-top:34px; color:var(--ink-faint); font-size:13px; letter-spacing:.18em;}
+  .foot .fb{font-family:"EB Garamond",serif; font-style:italic; font-size:17px; letter-spacing:0; color:var(--gold); text-transform:none;}
+  .topbar{display:flex; justify-content:space-between; align-items:center; margin-top:14px; gap:10px;}
+  .topbar .back{
+    background:var(--card); border:1.5px solid var(--line); color:var(--ink);
+    border-radius:10px; min-height:48px; padding:8px 16px; font-weight:600; font-size:15.5px;
+  }
+  .topbar h2{font-family:"Cinzel",serif; font-size:21px; margin:0;}
+  .rule{height:1px; background:var(--line-soft); margin:14px 0 0;}
+  .howto p{color:var(--ink-soft); margin:0 0 10px; font-size:16px;}
+  .howto p b{color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HOME ============ -->
+  <section id="scr-home" class="screen on">
+    <div class="hero">
+      <div class="rays"></div>
+      <div class="cross">✦ ✝ ✦</div>
+      <h1>TRU TREASURE<br /><span class="gold">HUNT</span></h1>
+      <div class="edition">Seeker's Edition</div>
+      <div class="tag">FAITH • PURPOSE • EXAMPLE</div>
+      <p class="sub">A clue is given. The Book is open. Somewhere in the passage, one word is pure gold — hunt it down, tap it, and dig deeper into what you found.</p>
+      <div class="be">"Thy word is a lamp unto my feet, and a light unto my path." — Psalm 119:105</div>
+    </div>
+
+    <div class="card">
+      <h2>Choose Your Depth</h2>
+      <p class="hintline">Ezekiel waded in step by step (Ezekiel 47). Deeper water = longer passages and more wiggle words hiding the treasure.</p>
+      <div class="seg" id="depth-seg">
+        <button data-depth="1">On the Shore<small>One verse, gentle start</small></button>
+        <button data-depth="2">Ankle Deep<small>A little more text</small></button>
+        <button data-depth="3" class="sel">Knee Deep<small>A fuller passage</small></button>
+        <button data-depth="4">Waist Deep<small>Long pages, more decoys</small></button>
+        <button data-depth="5">Deep Water<small>The whole passage, full hunt</small></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Choose Your Journey</h2>
+      <p class="hintline">Hunts are dealt fresh and shuffled every journey — no two journeys alike. Seeker Mode never runs dry.</p>
+      <div class="seg" id="journey-seg">
+        <button data-journey="6">6 Hunts<small>A quick dig</small></button>
+        <button data-journey="12" class="sel">12 Hunts<small>A good study</small></button>
+        <button data-journey="24">24 Hunts<small>The long road</small></button>
+        <button data-journey="0">Seeker ∞<small>Endless</small></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Seekers</h2>
+      <p class="hintline">Made for one seeker first — or pass the phone and hunt together, up to 4.</p>
+      <div class="seg two" id="players-seg">
+        <button data-players="1" class="sel">Just Me</button>
+        <button data-players="2">2 Seekers</button>
+        <button data-players="3">3 Seekers</button>
+        <button data-players="4">4 Seekers</button>
+      </div>
+      <div class="names" id="names-box">
+        <input id="name1" type="text" maxlength="16" placeholder="Seeker 1 name" autocomplete="off" />
+        <input id="name2" type="text" maxlength="16" placeholder="Seeker 2 name" autocomplete="off" />
+        <input id="name3" type="text" maxlength="16" placeholder="Seeker 3 name" autocomplete="off" />
+        <input id="name4" type="text" maxlength="16" placeholder="Seeker 4 name" autocomplete="off" />
+      </div>
+      <div class="rule"></div>
+      <div class="rowline" style="margin-top:8px;">
+        <div class="lbl">Bible Translation<small>KJV or WEB — both public domain, switch anytime</small></div>
+        <div class="seg" id="trans-seg" style="flex:0 0 auto;">
+          <button data-trans="kjv" class="sel" style="flex:0 0 auto;">KJV</button>
+          <button data-trans="web" style="flex:0 0 auto;">WEB</button>
+        </div>
+      </div>
+      <div class="rowline">
+        <div class="lbl">Bonus Clock<small>Off by default. On = bonus gems for a swift find. Never a penalty.</small></div>
+        <label class="switch"><input type="checkbox" id="clock-toggle" aria-label="Bonus clock" /></label>
+      </div>
+      <div class="rowline">
+        <div class="lbl">Sound &amp; Voice<small>Chimes and read-aloud. The hunt works fully in silence too.</small></div>
+        <button class="btn-ghost btn" id="test-sound" style="width:auto; min-height:48px; padding:8px 18px; font-size:15.5px;">🔊 Test Sound</button>
+      </div>
+    </div>
+
+    <div style="margin-top:18px;">
+      <button class="btn btn-gold" id="start-btn">Begin the Hunt ✦</button>
+      <div class="btnrow">
+        <button class="btn btn-ghost" id="vault-btn-home">💎 Treasure Vault</button>
+        <button class="btn btn-ghost" id="how-btn">How to Play</button>
+      </div>
+      <p class="mini">No timers hunting you down. No losing. <b>Every hunt ends in treasure</b> — hints walk with you the whole way.</p>
+    </div>
+
+    <div class="card howto" id="how-card" style="display:none;">
+      <h2>How to Play</h2>
+      <p><b>1. Read the clue.</b> Story clues, "Who am I?", prophecy and wisdom clues — each one points to a real moment in Scripture.</p>
+      <p><b>2. Hunt the passage.</b> The open book holds the real Bible text. One word in it is the treasure. Tap words to test them — wrong taps just wiggle and whisper <i>warmer</i> or <i>colder</i>.</p>
+      <p><b>3. Use the hint ladder freely.</b> First a warm glow gathers near the treasure, then the first letter is revealed, then — with grace — the word is shown to you. Hints cost a few bonus gems, never your dignity.</p>
+      <p><b>4. Dig deeper.</b> Every find opens the full verse, a Dig Deeper note with history, an original Hebrew or Greek word, a cross-reference, and a Treasure Truth to carry with you.</p>
+      <p><b>5. Fill your Vault.</b> Found verses and gems collect in your Treasure Vault for this session — tap any verse there to hear it read aloud.</p>
+    </div>
+
+    <div class="foot"><div class="fb">Be TRU.</div>TRU IDENTITY MINISTRY</div>
+  </section>
+
+  <!-- ============ CURTAIN ============ -->
+  <section id="scr-curtain" class="screen">
+    <div class="curtain">
+      <div class="big">🕊️</div>
+      <h2 id="curtain-title">Pass the phone</h2>
+      <p id="curtain-text">The next hunt is waiting.</p>
+      <button class="btn btn-gold" id="curtain-btn" style="max-width:320px; margin:0 auto;">I'm Ready — Show My Clue</button>
+    </div>
+  </section>
+
+  <!-- ============ GAME ============ -->
+  <section id="scr-game" class="screen">
+    <div class="hud">
+      <div class="chip">HUNT<b id="hud-hunt">1 of 12</b></div>
+      <div class="chip">DEPTH<b id="hud-depth">Knee Deep</b></div>
+      <div class="chip">GEMS<b class="gem" id="hud-gems">💎 0</b></div>
+    </div>
+    <div class="turnbar" id="turn-bar"></div>
+    <div class="timerbar" id="timer-bar"></div>
+
+    <div class="cluecard">
+      <span class="ctype" id="clue-type">Story Clue</span>
+      <span class="ref" id="clue-book"></span>
+      <p id="clue-text"></p>
+      <div class="letterbox" id="letter-box"></div>
+      <button class="listen" id="hear-clue">🔊 Hear the Clue</button>
+    </div>
+
+    <div class="book" id="book">
+      <div class="bookref" id="book-ref"></div>
+      <div id="book-pages"></div>
+    </div>
+    <div class="pager">
+      <button id="page-prev">← Turn Back</button>
+      <span class="pinfo" id="page-info">Page 1 of 1</span>
+      <button id="page-next">Turn Page →</button>
+    </div>
+
+    <div class="feedback" id="feedback">The treasure is in this passage. Trust the hunt.</div>
+    <button class="hintbtn" id="hint-btn">💡 Hint — Gather a Warm Glow</button>
+    <div class="btnrow">
+      <button class="btn btn-ghost" id="quit-btn" style="min-height:50px; font-size:15.5px;">End Journey</button>
+      <button class="btn btn-ghost" id="vault-btn-game" style="min-height:50px; font-size:15.5px;">💎 Vault</button>
+    </div>
+  </section>
+
+  <!-- ============ FOUND ============ -->
+  <section id="scr-found" class="screen">
+    <div class="celebrate" id="celebrate">
+      <div style="font-size:40px;">💎</div>
+      <h2 id="found-title">Treasure Found!</h2>
+      <div class="gemline" id="found-gems"></div>
+    </div>
+    <div class="foundverse">
+      <p id="found-verse"></p>
+      <div class="fvref" id="found-ref"></div>
+      <button class="listen" id="hear-verse" style="margin-top:12px; background:rgba(140,100,20,.12); border:1px solid rgba(140,100,20,.5); color:#5C430A; border-radius:10px; min-height:48px; padding:8px 16px; font-size:15.5px; font-weight:600;">🔊 Hear the Verse</button>
+    </div>
+    <div class="card dig">
+      <h3>Dig <span class="amp">Deeper</span> ⛏️</h3>
+      <p id="dig-context"></p>
+      <div class="orig">
+        <div class="oword" id="dig-word"></div>
+        <div class="omean" id="dig-wordmean"></div>
+      </div>
+      <p id="dig-cross"></p>
+    </div>
+    <div class="truth">
+      <div class="tlabel">Treasure Truth</div>
+      <p id="found-truth"></p>
+    </div>
+    <div style="margin-top:18px;">
+      <button class="btn btn-gold" id="next-btn">Next Hunt →</button>
+      <div class="btnrow">
+        <button class="btn btn-ghost" id="vault-btn-found" style="min-height:50px; font-size:15.5px;">💎 Treasure Vault</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VAULT ============ -->
+  <section id="scr-vault" class="screen">
+    <div class="topbar">
+      <button class="back" id="vault-back">← Back</button>
+      <h2>💎 Treasure Vault</h2>
+      <span style="width:74px;"></span>
+    </div>
+    <p class="mini" id="vault-total" style="text-align:left; margin-top:14px;"></p>
+    <div id="vault-list"></div>
+    <div class="foot"><div class="fb">Every verse you find is a keeper.</div>BE TRU.</div>
+  </section>
+
+  <!-- ============ FINALE ============ -->
+  <section id="scr-finale" class="screen">
+    <div class="celebrate">
+      <div style="font-size:44px;">🏆</div>
+      <h2>Journey Complete</h2>
+      <div class="gemline" id="finale-line"></div>
+    </div>
+    <div class="card">
+      <h2>Final Standings</h2>
+      <div class="standings" id="standings"></div>
+    </div>
+    <div class="truth">
+      <div class="tlabel">Selah</div>
+      <p>"Thy word have I hid in mine heart, that I might not sin against thee." — Psalm 119:11. Your Vault holds every treasure from this journey — go read them back.</p>
+    </div>
+    <div style="margin-top:18px;">
+      <button class="btn btn-gold" id="again-btn">Hunt Again — Fresh Deal ✦</button>
+      <div class="btnrow">
+        <button class="btn btn-ghost" id="vault-btn-finale">💎 Treasure Vault</button>
+        <button class="btn btn-ghost" id="home-btn-finale">Home</button>
+      </div>
+    </div>
+    <div class="foot"><div class="fb">Be TRU.</div>TRU IDENTITY MINISTRY</div>
+  </section>
+
+</div>
+<script>
+"use strict";
+/* ================= DATA =================
+   All verse text is public domain: KJV and WEB.
+   t = treasure word (string, or {kjv, web} when translations differ).
+   f = index of the focus verse inside v[].
+   v = verses shown; depth decides how many appear (focus always included).
+*/
+var HUNTS = [
+{type:"Story Clue", clue:"Before there was light, before there was land or sea — there was God, and He started it all. Find the very first moment of everything.", f:0, t:"beginning",
+ v:[{r:"Genesis 1:1", kjv:"In the beginning God created the heaven and the earth.", web:"In the beginning, God created the heavens and the earth."},
+    {r:"Genesis 1:2", kjv:"And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.", web:"The earth was formless and empty. Darkness was on the surface of the deep and God's Spirit was hovering over the surface of the waters."},
+    {r:"Genesis 1:3", kjv:"And God said, Let there be light: and there was light.", web:"God said, “Let there be light,” and there was light."}],
+ dig:{ctx:"Genesis opens not with an argument for God but with God already there — before time, matter, or light existed, He is. Moses wrote these words for a people fresh out of Egypt who needed to know their God was not one god among many, but the Maker of all.",
+      lang:"Hebrew", word:"bereshith — בְּרֵאשִׁית", mean:"“in the beginning” — the very first word of the Bible, built on rosh, meaning head, first, chief.",
+      cross:"Cross-reference: John 1:1 — “In the beginning was the Word…” John deliberately echoes Genesis to show Jesus was there at the start."},
+ truth:"Nothing in your life starts with you. It all starts with God — and if He started it, He knows exactly where it's going."},
+
+{type:"Story Clue", clue:"God made many things on the sixth day, but only one creation carries His own likeness. Find what makes you unmistakably His.", f:1, t:"image",
+ v:[{r:"Genesis 1:26", kjv:"And God said, Let us make man in our image, after our likeness: and let them have dominion over the fish of the sea, and over the fowl of the air, and over the cattle, and over all the earth.", web:"God said, “Let's make man in our image, after our likeness; and let them have dominion over the fish of the sea, and over the birds of the sky, and over the livestock, and over all the earth.”"},
+    {r:"Genesis 1:27", kjv:"So God created man in his own image, in the image of God created he him; male and female created he them.", web:"God created man in his own image. In God's image he created him; male and female he created them."}],
+ dig:{ctx:"In the ancient world, kings set up statues — images — of themselves in distant provinces to say “the king rules here.” Genesis says you are that image: a living representation of the King, placed on earth on purpose.",
+      lang:"Hebrew", word:"tselem — צֶלֶם", mean:"“image, likeness” — the same word used for a carved statue or representation.",
+      cross:"Cross-reference: Colossians 1:15 — Christ is “the image of the invisible God,” and 2 Corinthians 3:18 says we are being changed into that same image."},
+ truth:"You are not an accident or an afterthought. You carry the King's likeness — walk like it."},
+
+{type:"Story Clue", clue:"The man lay formed but lifeless in the dust — until God leaned close and gave him something from His own mouth. Find what turned dust into a living soul.", f:0, t:"breath",
+ v:[{r:"Genesis 2:7", kjv:"And the LORD God formed man of the dust of the ground, and breathed into his nostrils the breath of life; and man became a living soul.", web:"Yahweh God formed man from the dust of the ground, and breathed into his nostrils the breath of life; and man became a living soul."},
+    {r:"Genesis 2:8", kjv:"And the LORD God planted a garden eastward in Eden; and there he put the man whom he had formed.", web:"Yahweh God planted a garden eastward, in Eden, and there he put the man whom he had formed."}],
+ dig:{ctx:"Sculptors formed clay figures all over the ancient Near East, but no other story has the Maker personally breathing life into His creation. This is intimate — mouth to nostrils, God giving of Himself.",
+      lang:"Hebrew", word:"neshamah — נְשָׁמָה", mean:"“breath” — the breath of life, breathed directly by God, used again in Job 33:4: “the breath of the Almighty hath given me life.”",
+      cross:"Cross-reference: John 20:22 — the risen Jesus breathed on His disciples and said, “Receive ye the Holy Ghost.” The second creation echoes the first."},
+ truth:"Every breath you take today is on loan from God — and He never lends without a purpose."},
+
+{type:"Story Clue", clue:"God put Adam into a deep sleep and worked with His own hands. What did He take from the man's side to build the woman?", f:1, t:"rib",
+ v:[{r:"Genesis 2:21", kjv:"And the LORD God caused a deep sleep to fall upon Adam, and he slept: and he took one of his ribs, and closed up the flesh instead thereof;", web:"Yahweh God caused the man to fall into a deep sleep. As the man slept, he took one of his ribs, and closed up the flesh in its place."},
+    {r:"Genesis 2:22", kjv:"And the rib, which the LORD God had taken from man, made he a woman, and brought her unto the man.", web:"He made the rib, which Yahweh God had taken from the man, into a woman, and brought her to the man."}],
+ dig:{ctx:"Notice the text says God “made” — literally built — the woman. Adam's joyful response is the first poem in the Bible: “bone of my bones, and flesh of my flesh.” She is taken from his side — not his head to rule him, not his feet to be under him, but his side, near his heart.",
+      lang:"Hebrew", word:"tsela — צֵלָע", mean:"“side, rib” — used elsewhere in Scripture for the side of the tabernacle and the ark, places of honor and nearness.",
+      cross:"Cross-reference: Ephesians 5:31–32 — Paul quotes Genesis 2:24 here and says this mystery points to Christ and the church."},
+ truth:"God builds the best things out of surrendered sleep. Rest in Him — He does His finest work while you trust."},
+
+{type:"Prophecy Clue", clue:"In the wreckage of Eden, God spoke the very first promise of a Savior — a child of the woman who would crush the serpent's head. Find what the woman would carry.", f:0, t:{kjv:"seed", web:"offspring"},
+ v:[{r:"Genesis 3:14", kjv:"And the LORD God said unto the serpent, Because thou hast done this, thou art cursed above all cattle, and above every beast of the field; upon thy belly shalt thou go, and dust shalt thou eat all the days of thy life:", web:"Yahweh God said to the serpent, “Because you have done this, you are cursed above all livestock, and above every animal of the field. You shall go on your belly and you shall eat dust all the days of your life.”"},
+    {r:"Genesis 3:15", kjv:"And I will put enmity between thee and the woman, and between thy seed and her seed; it shall bruise thy head, and thou shalt bruise his heel.", web:"I will put hostility between you and the woman, and between your offspring and her offspring. He will bruise your head, and you will bruise his heel."}],
+ dig:{ctx:"This is called the protoevangelium — the first gospel. Before there was a law, a temple, or a nation, there was this promise: the serpent would wound the woman's descendant (a bruised heel — the cross), but that descendant would crush the serpent's head (a fatal blow — the resurrection).",
+      lang:"Hebrew", word:"zera — זֶרַע", mean:"“seed, offspring” — one word carrying both a whole family line and, as Paul shows, one particular Child.",
+      cross:"Cross-reference: Galatians 3:16 — Paul argues the promise was to Abraham's “seed… which is Christ,” and Romans 16:20 promises the God of peace will bruise Satan under our feet."},
+ truth:"God announced the rescue before He announced the consequences. His mercy always gets the first word."},
+
+{type:"Story Clue", clue:"Noah waited on the waters with no sign of land. Then the dove came back at evening carrying proof that the world was coming back to life. Find what was in her mouth.", f:1, t:"olive",
+ v:[{r:"Genesis 8:10", kjv:"And he stayed yet other seven days; and again he sent forth the dove out of the ark;", web:"He waited yet another seven days; and again he sent the dove out of the ship."},
+    {r:"Genesis 8:11", kjv:"And the dove came in to him in the evening; and, lo, in her mouth was an olive leaf pluckt off: so Noah knew that the waters were abated from off the earth.", web:"The dove came back to him at evening; and, behold, in her mouth was a freshly plucked olive leaf. So Noah knew that the waters were abated from the earth."}],
+ dig:{ctx:"Olive trees are stubborn survivors — they sprout fresh leaves quickly even after being submerged, clinging to rocky hillsides. For Noah, that one leaf was the first green headline of a new world: judgment was over, life had restarted.",
+      lang:"Hebrew", word:"zayith — זַיִת", mean:"“olive” — the olive became Israel's picture of thriving life, used for anointing oil, lamp fuel, and peace.",
+      cross:"Cross-reference: Psalm 52:8 — David declares, “I am like a green olive tree in the house of God,” and Romans 11 uses the olive tree for God's covenant family."},
+ truth:"One small green sign from God is enough. When He sends the leaf, start getting ready — dry land is coming."},
+
+{type:"Prophecy Clue", clue:"After the flood, God hung His weapon in the sky and pointed it away from the earth — a sign that He would remember mercy. Find what He set in the cloud.", f:0, t:{kjv:"bow", web:"rainbow"},
+ v:[{r:"Genesis 9:12", kjv:"And God said, This is the token of the covenant which I make between me and you and every living creature that is with you, for perpetual generations:", web:"God said, “This is the token of the covenant which I make between me and you and every living creature that is with you, for perpetual generations:"},
+    {r:"Genesis 9:13", kjv:"I do set my bow in the cloud, and it shall be for a token of a covenant between me and the earth.", web:"I set my rainbow in the cloud, and it will be a sign of a covenant between me and the earth.”"}],
+ dig:{ctx:"The Hebrew word is the word for a war bow. A warrior at peace hangs his bow up — and here God hangs His in the clouds, unstrung, visible to every generation. The sign is not mainly for us to remember God; the text says it is for God to remember His promise.",
+      lang:"Hebrew", word:"qeshet — קֶשֶׁת", mean:"“bow” — a battle bow; the rainbow is God's retired weapon, displayed over the whole earth.",
+      cross:"Cross-reference: Revelation 4:3 — around God's very throne in heaven there is “a rainbow… in sight like unto an emerald.” Mercy surrounds the throne."},
+ truth:"Every rainbow is a receipt: God keeps covenant. What He promised over the flood, He will perform in your storm too."},
+
+{type:"Story Clue", clue:"God called an old man out of his country with nothing but a promise: “I will make of you something great.” Find what God said He would build out of Abram.", f:1, t:"nation",
+ v:[{r:"Genesis 12:1", kjv:"Now the LORD had said unto Abram, Get thee out of thy country, and from thy kindred, and from thy father's house, unto a land that I will shew thee:", web:"Now Yahweh said to Abram, “Leave your country, and your relatives, and your father's house, and go to the land that I will show you.”"},
+    {r:"Genesis 12:2", kjv:"And I will make of thee a great nation, and I will bless thee, and make thy name great; and thou shalt be a blessing:", web:"I will make of you a great nation. I will bless you and make your name great. You will be a blessing."}],
+ dig:{ctx:"Abram was 75, childless, and from a family of idol-makers (Joshua 24:2). God's call demanded leaving country, extended family, and father's house — his whole safety net — for a land God had not even named yet. The promise came first; the details came later.",
+      lang:"Hebrew", word:"goy — גּוֹי", mean:"“nation, people” — the word usually used for Gentile nations; God pledges to make one for Himself out of a barren couple.",
+      cross:"Cross-reference: Genesis 22:18 — the promise ripens: “in thy seed shall all the nations of the earth be blessed,” which Paul in Galatians 3:8 calls the gospel preached beforehand to Abraham."},
+ truth:"God does not need your résumé — He needs your yes. Leave when He calls; the greatness is on His side of the promise."},
+
+{type:"Story Clue", clue:"On a night when Abraham's hope felt as far away as the sky, God took him outside and told him to count what no man can count. Find what Abraham was told to number.", f:0, t:"stars",
+ v:[{r:"Genesis 15:5", kjv:"And he brought him forth abroad, and said, Look now toward heaven, and tell the stars, if thou be able to number them: and he said unto him, So shall thy seed be.", web:"Yahweh brought him outside, and said, “Look now toward the sky, and count the stars, if you are able to count them.” He said to Abram, “So will your offspring be.”"},
+    {r:"Genesis 15:6", kjv:"And he believed in the LORD; and he counted it to him for righteousness.", web:"He believed in Yahweh, who credited it to him for righteousness."}],
+ dig:{ctx:"Abraham had just told God his only heir was a servant. God's answer was not an explanation but an object lesson: go outside and look up. Verse 6 — “he believed” — becomes one of the most quoted verses in the New Testament.",
+      lang:"Hebrew", word:"kokhavim — כּוֹכָבִים", mean:"“stars” — the promise-picture God used for descendants too many to count (see also Deuteronomy 1:10).",
+      cross:"Cross-reference: Romans 4:20–21 — Abraham “staggered not at the promise of God through unbelief… being fully persuaded that, what he had promised, he was able also to perform.”"},
+ truth:"When your situation says impossible, go outside and look up. God writes His promises bigger than your problem."},
+
+{type:"Prophecy Clue", clue:"On Mount Moriah, Isaac asked the question that echoes through the whole Bible: “Where is the lamb?” Find Abraham's answer — it was a prophecy.", f:0, t:"lamb",
+ v:[{r:"Genesis 22:7", kjv:"And Isaac spake unto Abraham his father, and said, My father: and he said, Here am I, my son. And he said, Behold the fire and the wood: but where is the lamb for a burnt offering?", web:"Isaac spoke to Abraham his father, and said, “My father?” He said, “Here I am, my son.” He said, “Here is the fire and the wood, but where is the lamb for a burnt offering?”"},
+    {r:"Genesis 22:8", kjv:"And Abraham said, My son, God will provide himself a lamb for a burnt offering: so they went both of them together.", web:"Abraham said, “God will provide himself the lamb for a burnt offering, my son.” So they both went together."}],
+ dig:{ctx:"Moriah is named again in 2 Chronicles 3:1 — it is where Solomon later built the Temple in Jerusalem, and nearby where Jesus would die. God stopped Abraham's hand and provided a ram that day, but Abraham's words looked further: God will provide Himself a lamb.",
+      lang:"Hebrew", word:"seh — שֶׂה", mean:"“lamb, sheep” — the word for the Passover lamb in Exodus 12 as well; one word tying Moriah to Egypt to Calvary.",
+      cross:"Cross-reference: John 1:29 — John the Baptist sees Jesus and answers Isaac's ancient question: “Behold the Lamb of God, which taketh away the sin of the world.”"},
+ truth:"Whatever God asks of you, He has already provided for. The Lamb was on the way before you ever climbed the mountain."},
+
+{type:"Story Clue", clue:"Jacob woke alone in the desert with a stone for a pillow — and dreamed of traffic between heaven and earth. Find what stood on the ground and reached the sky.", f:0, t:{kjv:"ladder", web:"stairway"},
+ v:[{r:"Genesis 28:12", kjv:"And he dreamed, and behold a ladder set up on the earth, and the top of it reached to heaven: and behold the angels of God ascending and descending on it.", web:"He dreamed and saw a stairway set up on the earth, and its top reached to heaven. Behold, the angels of God were ascending and descending on it."},
+    {r:"Genesis 28:13", kjv:"And, behold, the LORD stood above it, and said, I am the LORD God of Abraham thy father, and the God of Isaac: the land whereon thou liest, to thee will I give it, and to thy seed;", web:"Behold, Yahweh stood above it, and said, “I am Yahweh, the God of Abraham your father, and the God of Isaac. I will give the land you lie on to you and to your offspring.”"}],
+ dig:{ctx:"Jacob was running from a brother he had cheated, sleeping rough in the middle of nowhere. The dream's shock is the location: heaven's stairway stood right there, over a fugitive's campsite. Jacob named the place Bethel — house of God.",
+      lang:"Hebrew", word:"sullam — סֻלָּם", mean:"“stairway, ramp” — used only here in the whole Bible, picturing the great stair ramps of ancient temples.",
+      cross:"Cross-reference: John 1:51 — Jesus tells Nathanael, “ye shall see heaven open, and the angels of God ascending and descending upon the Son of man.” Jesus names Himself as the stairway."},
+ truth:"You don't have to climb your way to God. In Christ, heaven already came down the stairs to you."},
+
+{type:"Story Clue", clue:"Joseph's brothers meant one thing by the pit and the prison — but God meant something entirely different by the same events. Find the word that tells God's side of the story.", f:0, t:"good",
+ v:[{r:"Genesis 50:19", kjv:"And Joseph said unto them, Fear not: for am I in the place of God?", web:"Joseph said to them, “Don't be afraid, for am I in the place of God?"},
+    {r:"Genesis 50:20", kjv:"But as for you, ye thought evil against me; but God meant it unto good, to bring to pass, as it is this day, to save much people alive.", web:"As for you, you meant evil against me, but God meant it for good, to save many people alive, as is happening today."}],
+ dig:{ctx:"Joseph spoke these words twenty years after his brothers sold him. Notice he doesn't deny their evil — he out-frames it. Their intent and God's intent ran on two tracks through the same events, and God's track arrived at a throne that fed nations.",
+      lang:"Hebrew", word:"tov — טוֹב", mean:"“good” — the word God kept speaking over creation in Genesis 1; Joseph says God was doing Genesis 1 work inside a Genesis 50 betrayal.",
+      cross:"Cross-reference: Romans 8:28 — “all things work together for good to them that love God” is Joseph's testimony turned into a promise for every believer."},
+ truth:"They meant it one way; God meant it better. Don't judge the story while you're still in the pit chapter."},
+
+{type:"Who Am I?", clue:"I burn in a bush that never burns up, and when Moses asked My name, I gave him no label — I gave him My very being, in two words. Find the second word of My name.", f:0, t:"AM",
+ v:[{r:"Exodus 3:13", kjv:"And Moses said unto God, Behold, when I come unto the children of Israel, and shall say unto them, The God of your fathers hath sent me unto you; and they shall say to me, What is his name? what shall I say unto them?", web:"Moses said to God, “Behold, when I come to the children of Israel, and tell them, ‘The God of your fathers has sent me to you,’ and they ask me, ‘What is his name?’ what should I tell them?”"},
+    {r:"Exodus 3:14", kjv:"And God said unto Moses, I AM THAT I AM: and he said, Thus shalt thou say unto the children of Israel, I AM hath sent me unto you.", web:"God said to Moses, “I AM WHO I AM,” and he said, “You shall tell the children of Israel this: ‘I AM has sent me to you.’”"}],
+ dig:{ctx:"Moses wanted a name he could carry like a credential. God gave him something bigger: a name built on the verb “to be.” God is not defined by anything outside Himself — He simply IS, eternally present, the same yesterday, today, and forever.",
+      lang:"Hebrew", word:"Ehyeh — אֶהְיֶה", mean:"“I AM / I will be” — from the verb hayah, to be; the root behind the covenant name Yahweh.",
+      cross:"Cross-reference: John 8:58 — Jesus declares, “Before Abraham was, I am,” and the crowd picks up stones, because they know exactly whose name He just claimed."},
+ truth:"God's name is present tense. He is not the God who was, or might be — for your situation today, He IS."},
+
+{type:"Story Clue", clue:"On the night of the first Passover, one sign on the doorposts told the destroyer to keep moving. Find what God said He would look for on the houses.", f:0, t:"blood",
+ v:[{r:"Exodus 12:12", kjv:"For I will pass through the land of Egypt this night, and will smite all the firstborn in the land of Egypt, both man and beast; and against all the gods of Egypt I will execute judgment: I am the LORD.", web:"For I will go through the land of Egypt in that night, and will strike all the firstborn in the land of Egypt, both man and animal. I will execute judgments against all the gods of Egypt. I am Yahweh."},
+    {r:"Exodus 12:13", kjv:"And the blood shall be to you for a token upon the houses where ye are: and when I see the blood, I will pass over you, and the plague shall not be upon you to destroy you, when I smite the land of Egypt.", web:"The blood shall be to you for a token on the houses where you are; and when I see the blood, I will pass over you, and there shall no plague be on you to destroy you when I strike the land of Egypt."}],
+ dig:{ctx:"Israel's safety that night did not rest on their worthiness but on a sign God Himself appointed and God Himself watched for: “when I see the blood.” The family's job was simply to be inside the house where the blood was applied.",
+      lang:"Hebrew", word:"dam — דָּם", mean:"“blood” — in Hebrew thought the life is in the blood (Leviticus 17:11), which is why blood could stand in the place of a life.",
+      cross:"Cross-reference: 1 Peter 1:18–19 — we are redeemed “with the precious blood of Christ, as of a lamb without blemish and without spot.” Passover pointed here all along."},
+ truth:"Your covering is not your performance — it's the blood God sees. Stay in the house; the sign is already on the door."},
+
+{type:"Story Clue", clue:"In the wilderness, bread fell from heaven every morning — thin, white, and sweet like wafers with honey. Find the name Israel gave it.", f:0, t:"Manna",
+ v:[{r:"Exodus 16:14", kjv:"And when the dew that lay was gone up, behold, upon the face of the wilderness there lay a small round thing, as small as the hoar frost on the ground.", web:"When the dew that lay had gone, behold, on the surface of the wilderness was a small round thing, small as the frost on the ground."},
+    {r:"Exodus 16:31", kjv:"And the house of Israel called the name thereof Manna: and it was like coriander seed, white; and the taste of it was like wafers made with honey.", web:"The house of Israel called its name Manna. It was like coriander seed, white; and its taste was like wafers with honey."}],
+ dig:{ctx:"When Israel first saw it, they asked “man hu?” — “what is it?” — and the question became its name. For forty years it arrived daily: enough for the day, double before the Sabbath, and it stopped the day they ate the produce of Canaan (Joshua 5:12).",
+      lang:"Hebrew", word:"man — מָן", mean:"“manna” — from the question man hu, “What is it?” Heaven's bread arrived with a question mark, and faith had to gather it anyway.",
+      cross:"Cross-reference: John 6:31–35 — Jesus says Moses' manna kept bodies alive for a day, then announces, “I am the bread of life.”"},
+ truth:"God feeds His people one day at a time. Today's portion is coming — go out and gather it with thanks."},
+
+{type:"Story Clue", clue:"Bitten Israelites were dying in the desert, and God's cure looked back at the very thing that hurt them — lifted up on a pole. Find what Moses made.", f:0, t:"serpent",
+ v:[{r:"Numbers 21:8", kjv:"And the LORD said unto Moses, Make thee a fiery serpent, and set it upon a pole: and it shall come to pass, that every one that is bitten, when he looketh upon it, shall live.", web:"Yahweh said to Moses, “Make a fiery serpent, and set it on a pole. Everyone who is bitten, when he sees it, shall live.”"},
+    {r:"Numbers 21:9", kjv:"And Moses made a serpent of brass, and put it upon a pole, and it came to pass, that if a serpent had bitten any man, when he beheld the serpent of brass, he lived.", web:"Moses made a serpent of bronze, and put it on the pole. If a serpent had bitten any man, when he looked at the serpent of bronze, he lived."}],
+ dig:{ctx:"The cure required nothing but looking — no medicine, no ritual, no fee. Centuries later, Israel kept the bronze serpent and began worshiping it until Hezekiah smashed it (2 Kings 18:4): a gift of God had become an idol.",
+      lang:"Hebrew", word:"nachash — נָחָשׁ", mean:"“serpent” — the same word used for the serpent in Eden; here the image of the curse is lifted up so the curse can be broken.",
+      cross:"Cross-reference: John 3:14–15 — Jesus says, “As Moses lifted up the serpent in the wilderness, even so must the Son of man be lifted up.” Look and live."},
+ truth:"Healing doesn't always ask you to work. Sometimes the whole prescription is: look up at what God lifted for you."},
+
+{type:"Story Clue", clue:"The greatest commandment tells us to love God with everything we are — and it names the command center first. Find where the love is supposed to live.", f:1, t:"heart",
+ v:[{r:"Deuteronomy 6:4", kjv:"Hear, O Israel: The LORD our God is one LORD:", web:"Hear, Israel: Yahweh is our God. Yahweh is one."},
+    {r:"Deuteronomy 6:5", kjv:"And thou shalt love the LORD thy God with all thine heart, and with all thy soul, and with all thy might.", web:"You shall love Yahweh your God with all your heart, with all your soul, and with all your might."}],
+ dig:{ctx:"These are the words of the Shema, prayed by Jewish families morning and evening to this day. In Hebrew thinking the heart is not the seat of feelings but of thought, will, and decision — loving God with all your heart means loving Him with your whole mind and choices.",
+      lang:"Hebrew", word:"levav — לֵבָב", mean:"“heart” — mind, will, and affections together; the control room of a person.",
+      cross:"Cross-reference: Matthew 22:37 — a lawyer asks Jesus for the greatest commandment, and Jesus quotes this very verse. First place, then and now."},
+ truth:"God is not asking for a corner of your heart on Sundays. All of it, always — and He is worth every bit."},
+
+{type:"Wisdom Clue", clue:"Joshua's success formula had nothing to do with talent or troops. Day and night, one steady practice. Find what Joshua was told to do with the Book.", f:0, t:"meditate",
+ v:[{r:"Joshua 1:8", kjv:"This book of the law shall not depart out of thy mouth; but thou shalt meditate therein day and night, that thou mayest observe to do according to all that is written therein: for then thou shalt make thy way prosperous, and then thou shalt have good success.", web:"This book of the law shall not depart from your mouth, but you shall meditate on it day and night, that you may observe to do according to all that is written in it; for then you shall make your way prosperous, and then you shall have good success."}],
+ dig:{ctx:"God gave this charge to a man succeeding Moses — arguably the most intimidating job takeover in history. The strategy for leading a nation was surprisingly small and daily: keep the Word in your mouth and on your mind until it shapes what you do.",
+      lang:"Hebrew", word:"hagah — הָגָה", mean:"“to meditate” — literally to murmur, mutter, or growl softly; the picture of someone repeating the words half-aloud until they're inside.",
+      cross:"Cross-reference: Psalm 1:2 — the blessed person's “delight is in the law of the LORD; and in his law doth he meditate day and night.” Same promise, same practice."},
+ truth:"Success in God's economy grows out of Scripture-soaked thinking. Chew the Word slowly — day and night, bite by bite."},
+
+{type:"Story Clue", clue:"A Moabite widow made a vow that still gets read at weddings: “Where you go, I will go… your God, my God.” Find the family word Ruth claimed as her own.", f:0, t:"people",
+ v:[{r:"Ruth 1:16", kjv:"And Ruth said, Intreat me not to leave thee, or to return from following after thee: for whither thou goest, I will go; and where thou lodgest, I will lodge: thy people shall be my people, and thy God my God:", web:"Ruth said, “Don't urge me to leave you, and to return from following you, for where you go, I will go; and where you stay, I will stay. Your people will be my people, and your God my God.”"}],
+ dig:{ctx:"Ruth had every earthly reason to go home: she was widowed, poor, and a foreigner from Moab, Israel's old enemy. Instead she bound herself to Naomi and Naomi's God — and ended up in the family line of King David and of Jesus Himself.",
+      lang:"Hebrew", word:"am — עַם", mean:"“people” — a people bound together; Ruth, an outsider, claims Israel's people as her own by covenant love.",
+      cross:"Cross-reference: Matthew 1:5 — in Jesus' own genealogy, wedged between kings, sits “Ruth” — the Moabite who refused to let go."},
+ truth:"Loyalty like Ruth's rewrites family trees. Stay faithful in the famine season — Bethlehem is closer than it looks."},
+
+{type:"Story Clue", clue:"A shepherd boy ran at a giant with no sword and no armor — just a sling, a bag, and something he picked out of the brook. Find what sank into Goliath's forehead.", f:0, t:"stone",
+ v:[{r:"1 Samuel 17:48", kjv:"And it came to pass, when the Philistine arose, and came and drew nigh to meet David, that David hasted, and ran toward the army to meet the Philistine.", web:"When the Philistine arose, and walked and came near to meet David, David hurried and ran toward the army to meet the Philistine."},
+    {r:"1 Samuel 17:49", kjv:"And David put his hand in his bag, and took thence a stone, and slang it, and smote the Philistine in his forehead, that the stone sunk into his forehead; and he fell upon his face to the earth.", web:"David put his hand in his bag, took a stone, slung it, and struck the Philistine in his forehead. The stone sank into his forehead, and he fell on his face to the earth."}],
+ dig:{ctx:"Trained slingers were feared in ancient warfare — Judges 20:16 mentions slingers who could hit a hair and not miss. Still, David's confidence was not in the sling: he told Goliath, “the battle is the LORD's” (v.47). The stone was small; the Name behind it was not.",
+      lang:"Hebrew", word:"even — אֶבֶן", mean:"“stone” — the word that later rings through Psalm 118:22: “The stone which the builders refused is become the head stone of the corner.”",
+      cross:"Cross-reference: Matthew 21:42 — Jesus applies the rejected-stone psalm to Himself: small in the world's eyes, the very cornerstone in God's."},
+ truth:"God does His giant-killing with what fits your hand. Don't despise your small stone — throw it in His name."},
+
+{type:"Story Clue", clue:"On Mount Carmel, Elijah soaked the altar with water three times — then prayed once, and heaven answered so nobody could mistake it. Find what fell from the LORD.", f:0, t:"fire",
+ v:[{r:"1 Kings 18:37", kjv:"Hear me, O LORD, hear me, that this people may know that thou art the LORD God, and that thou hast turned their heart back again.", web:"Hear me, Yahweh, hear me, that this people may know that you, Yahweh, are God, and that you have turned their heart back again.”"},
+    {r:"1 Kings 18:38", kjv:"Then the fire of the LORD fell, and consumed the burnt sacrifice, and the wood, and the stones, and the dust, and licked up the water that was in the trench.", web:"Then Yahweh's fire fell, and consumed the burnt offering, the wood, the stones, and the dust, and licked up the water that was in the trench."}],
+ dig:{ctx:"450 prophets of Baal had screamed and cut themselves all day with no answer. Elijah's prayer was 63 words, calm and public — and the fire consumed not just the sacrifice but the wood, stones, dust, and even the water. Nothing was left for anyone to call a trick.",
+      lang:"Hebrew", word:"esh — אֵשׁ", mean:"“fire” — God's signature of presence: the burning bush, the pillar of fire, the tongues of fire at Pentecost all burn with this word.",
+      cross:"Cross-reference: Hebrews 12:29 — “our God is a consuming fire,” and Acts 2:3, where Carmel's fire comes to rest on ordinary believers."},
+ truth:"You don't have to shout God down. Get the altar in order, pray in faith — He still answers by fire."},
+
+{type:"Wisdom Clue", clue:"Psalm 1 says the righteous person is not a tumbleweed blown by every wind — they're planted, rooted, and fruitful by the water. Find what they are planted like.", f:2, t:"tree",
+ v:[{r:"Psalm 1:1", kjv:"Blessed is the man that walketh not in the counsel of the ungodly, nor standeth in the way of sinners, nor sitteth in the seat of the scornful.", web:"Blessed is the man who doesn't walk in the counsel of the wicked, nor stand on the path of sinners, nor sit in the seat of scoffers;"},
+    {r:"Psalm 1:2", kjv:"But his delight is in the law of the LORD; and in his law doth he meditate day and night.", web:"but his delight is in Yahweh's law. On his law he meditates day and night."},
+    {r:"Psalm 1:3", kjv:"And he shall be like a tree planted by the rivers of water, that bringeth forth his fruit in his season; his leaf also shall not wither; and whatsoever he doeth shall prosper.", web:"He will be like a tree planted by the streams of water, that produces its fruit in its season, whose leaf also does not wither. Whatever he does shall prosper."}],
+ dig:{ctx:"In Israel's dry climate, a tree by the river doesn't depend on rain — its roots tap a supply that never makes the weather report. The word “planted” is actually “transplanted”: somebody moved this tree to the water on purpose. God does the transplanting; we do the delighting.",
+      lang:"Hebrew", word:"ets — עֵץ", mean:"“tree, wood” — the Bible's favorite picture of a flourishing person, from Eden's trees to the tree of life in Revelation 22.",
+      cross:"Cross-reference: Jeremiah 17:7–8 — the same picture expanded: the tree by the water “shall not be careful in the year of drought… neither shall cease from yielding fruit.”"},
+ truth:"Fruit is seasonal, but roots are daily. Stay planted by the water of the Word and your season will come."},
+
+{type:"Who Am I?", clue:"David says: “The LORD is my ______; I shall not want.” I lead him to green pastures and still waters. Who am I in this verse?", f:0, t:"shepherd",
+ v:[{r:"Psalm 23:1", kjv:"The LORD is my shepherd; I shall not want.", web:"Yahweh is my shepherd; I shall lack nothing."},
+    {r:"Psalm 23:2", kjv:"He maketh me to lie down in green pastures: he leadeth me beside the still waters.", web:"He makes me lie down in green pastures. He leads me beside still waters."},
+    {r:"Psalm 23:3", kjv:"He restoreth my soul: he leadeth me in the paths of righteousness for his name's sake.", web:"He restores my soul. He guides me in the paths of righteousness for his name's sake."}],
+ dig:{ctx:"David didn't write “the LORD is a shepherd” or “Israel's shepherd” — he wrote my shepherd. A shepherd in Israel carried a rod for wolves and a staff for wandering sheep; both appear in verse 4 as comfort, not threat.",
+      lang:"Hebrew", word:"ra'ah — רָעָה", mean:"“to shepherd, to pasture, to tend” — David's word ro'i means “the one shepherding me,” a present-tense, ongoing care.",
+      cross:"Cross-reference: John 10:11 — Jesus takes David's title for Himself: “I am the good shepherd: the good shepherd giveth his life for the sheep.”"},
+ truth:"You are not self-led and you're not lost. You have a Shepherd — and a sheep with a shepherd shall not want."},
+
+{type:"Wisdom Clue", clue:"God gives a command for anxious hearts that sounds almost impossible in a storm: two words that mean “let go.” Find the stillness He commands.", f:0, t:"still",
+ v:[{r:"Psalm 46:9", kjv:"He maketh wars to cease unto the end of the earth; he breaketh the bow, and cutteth the spear in sunder; he burneth the chariot in the fire.", web:"He makes wars cease to the end of the earth. He breaks the bow, and shatters the spear. He burns the chariots in the fire."},
+    {r:"Psalm 46:10", kjv:"Be still, and know that I am God: I will be exalted among the heathen, I will be exalted in the earth.", web:"“Be still, and know that I am God. I will be exalted among the nations. I will be exalted in the earth.”"}],
+ dig:{ctx:"Psalm 46 was written against a backdrop of nations raging and mountains sliding into the sea — and Martin Luther turned it into “A Mighty Fortress Is Our God.” God's command to “be still” is spoken over chaos, not calm.",
+      lang:"Hebrew", word:"raphah — רָפָה", mean:"“to let go, sink down, relax your grip” — less “freeze in fear” and more “open your hands; stop carrying what only God can carry.”",
+      cross:"Cross-reference: Exodus 14:14 — at the Red Sea, Moses tells Israel, “The LORD shall fight for you, and ye shall hold your peace.” Same God, same strategy."},
+ truth:"Stillness is not quitting — it's transferring the weight. Let go of the outcome and know that He is God."},
+
+{type:"Wisdom Clue", clue:"Walking a dark road at midnight, what does the psalmist say God's Word is to his feet — something small he can carry that pushes back the dark?", f:0, t:"lamp",
+ v:[{r:"Psalm 119:105", kjv:"Thy word is a lamp unto my feet, and a light unto my path.", web:"Your word is a lamp to my feet, and a light for my path."},
+    {r:"Psalm 119:11", kjv:"Thy word have I hid in mine heart, that I might not sin against thee.", web:"I have hidden your word in my heart, that I might not sin against you."}],
+ dig:{ctx:"The lamps of David's day were small clay dishes of oil with a wick — they lit only the next step or two, not the whole road. That's the picture: God's Word rarely shows us the whole journey at once; it faithfully lights the step in front of us.",
+      lang:"Hebrew", word:"ner — נֵר", mean:"“lamp” — the little oil lamp of everyday homes; Psalm 132:17 uses it for the promised Davidic king, God's lamp that will not go out.",
+      cross:"Cross-reference: 2 Peter 1:19 — Peter calls prophecy “a light that shineth in a dark place, until the day dawn.” Carry the light you have until the dawn comes."},
+ truth:"You may not see the whole road tonight, but you have light for the next step. Take it — the path lights up as you walk."},
+
+{type:"Wisdom Clue", clue:"Solomon's most famous instruction starts with a whole-heart decision aimed at the LORD — not at your own understanding. Find the opening word.", f:0, t:"Trust",
+ v:[{r:"Proverbs 3:5", kjv:"Trust in the LORD with all thine heart; and lean not unto thine own understanding.", web:"Trust in Yahweh with all your heart, and don't lean on your own understanding."},
+    {r:"Proverbs 3:6", kjv:"In all thy ways acknowledge him, and he shall direct thy paths.", web:"In all your ways acknowledge him, and he will make your paths straight."}],
+ dig:{ctx:"Proverbs 3:5–6 is written as a father coaching a son at the start of adult life. The picture in “lean not” is physical: don't put your full weight on your own reasoning like a crutch — it wasn't built to hold you.",
+      lang:"Hebrew", word:"batach — בָּטַח", mean:"“to trust, feel secure, lie face-down in surrender” — the trust of someone who has stopped bracing for disaster because God is near.",
+      cross:"Cross-reference: Isaiah 26:3 — “Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee.” Same word, same promise."},
+ truth:"Your understanding is a good servant but a shaky crutch. Lean on Him — all your heart, all your ways, all the time."},
+
+{type:"Prophecy Clue", clue:"Seven hundred years before Bethlehem, Isaiah listed the throne names of a coming Child — and the very first name is pure wonder. Find it.", f:0, t:"Wonderful",
+ v:[{r:"Isaiah 9:6", kjv:"For unto us a child is born, unto us a son is given: and the government shall be upon his shoulder: and his name shall be called Wonderful, Counsellor, The mighty God, The everlasting Father, The Prince of Peace.", web:"For a child is born to us. A son is given to us; and the government will be on his shoulders. His name will be called Wonderful, Counselor, Mighty God, Everlasting Father, Prince of Peace."},
+    {r:"Isaiah 9:7", kjv:"Of the increase of his government and peace there shall be no end, upon the throne of David, and upon his kingdom, to order it, and to establish it with judgment and with justice from henceforth even for ever.", web:"Of the increase of his government and of peace there shall be no end, on David's throne, and on his kingdom, to establish it, and to uphold it with justice and with righteousness from that time on, even forever."}],
+ dig:{ctx:"Isaiah spoke into national dread — Assyria was swallowing the region. God's answer was not first an army but a baby, and every name on the list belongs to God Himself: this child would be called Mighty God. A government with “no end” to its increase is still increasing.",
+      lang:"Hebrew", word:"pele — פֶּלֶא", mean:"“wonder, miracle” — a wonder beyond explanation; the same root as the “wonderful” works of God in the Psalms.",
+      cross:"Cross-reference: Luke 2:7 and Matthew 1:23 — the child arrives in a manger, named Immanuel, “God with us,” exactly on Isaiah's schedule (Isaiah 7:14)."},
+ truth:"When the world looks dark, God sends a Child, not a press release. Heaven's biggest answers sometimes arrive smallest."},
+
+{type:"Prophecy Clue", clue:"To people exhausted by waiting, Isaiah promises renewed strength and a lift no athlete can train for. Find the birds whose wings the waiters will borrow.", f:0, t:"eagles",
+ v:[{r:"Isaiah 40:29", kjv:"He giveth power to the faint; and to them that have no might he increaseth strength.", web:"He gives power to the weak. He increases the strength of him who has no might."},
+    {r:"Isaiah 40:31", kjv:"But they that wait upon the LORD shall renew their strength; they shall mount up with wings as eagles; they shall run, and not be weary; and they shall walk, and not faint.", web:"But those who wait for Yahweh will renew their strength. They will mount up with wings like eagles. They will run, and not be weary. They will walk, and not faint."}],
+ dig:{ctx:"Isaiah 40 opens the comfort section of the book, written for exiles who said “my way is hid from the LORD” (v.27). The promise is an exchange: the Hebrew for “renew” means to trade in — bring God your spent strength and swap it for His.",
+      lang:"Hebrew", word:"nesher — נֶשֶׁר", mean:"“eagle” — the great griffon vulture/eagle of Israel's cliffs, famous for riding storms and carrying its young (Deuteronomy 32:11).",
+      cross:"Cross-reference: Exodus 19:4 — God says He carried Israel out of Egypt “on eagles' wings,” and Psalm 103:5 says He renews our youth “like the eagle's.”"},
+ truth:"Waiting on God is not wasted time — it's the exchange counter. Bring Him your empty tank; He trades in full."},
+
+{type:"Prophecy Clue", clue:"Isaiah watched the Suffering Servant carry what we deserved. Our sins left marks on Him — find the word for what He was for our transgressions.", f:0, t:{kjv:"wounded", web:"pierced"},
+ v:[{r:"Isaiah 53:4", kjv:"Surely he hath borne our griefs, and carried our sorrows: yet we did esteem him stricken, smitten of God, and afflicted.", web:"Surely he has borne our sickness and carried our suffering; yet we considered him plagued, struck by God, and afflicted."},
+    {r:"Isaiah 53:5", kjv:"But he was wounded for our transgressions, he was bruised for our iniquities: the chastisement of our peace was upon him; and with his stripes we are healed.", web:"But he was pierced for our transgressions. He was crushed for our iniquities. The punishment that brought our peace was on him; and by his wounds we are healed."}],
+ dig:{ctx:"Isaiah 53 is so precise about the cross — pierced, silent before accusers, buried in a rich man's tomb, numbered with transgressors — that it has been called the fifth gospel. It was written roughly 700 years before Jesus was born.",
+      lang:"Hebrew", word:"mecholal — מְחֹלָל", mean:"“pierced, wounded through” — from a root meaning to bore or pierce; the Servant is not merely bruised but run through for us.",
+      cross:"Cross-reference: 1 Peter 2:24 — Peter quotes this verse nearly word for word: “by whose stripes ye were healed.” Isaiah looked forward; Peter looked back; we stand in the healing."},
+ truth:"His wounds were not random cruelty — they were a transaction. Your peace and your healing were purchased there, on purpose."},
+
+{type:"Prophecy Clue", clue:"God mailed this promise to exiles in Babylon who thought their story was over — His thoughts toward them were not of evil, but of something specific. Find it.", f:0, t:"peace",
+ v:[{r:"Jeremiah 29:10", kjv:"For thus saith the LORD, That after seventy years be accomplished at Babylon I will visit you, and perform my good word toward you, in causing you to return to this place.", web:"For Yahweh says, “After seventy years are accomplished for Babylon, I will visit you and perform my good word toward you, in causing you to return to this place.”"},
+    {r:"Jeremiah 29:11", kjv:"For I know the thoughts that I think toward you, saith the LORD, thoughts of peace, and not of evil, to give you an expected end.", web:"For I know the thoughts that I think toward you,” says Yahweh, “thoughts of peace, and not of evil, to give you hope and a future.”"}],
+ dig:{ctx:"Jeremiah 29:11 is not a greeting-card verse for easy times — it's a line in a letter to captives told to settle in for seventy years. God's future for them was real, but it ran through faithfulness in exile, not escape from it.",
+      lang:"Hebrew", word:"shalom — שָׁלוֹם", mean:"“peace” — far bigger than calm: wholeness, completeness, everything in its right place, nothing missing and nothing broken.",
+      cross:"Cross-reference: John 14:27 — Jesus says, “Peace I leave with you, my peace I give unto you.” The exile's promise becomes the disciple's inheritance."},
+ truth:"Captivity is a chapter, not the conclusion. God's thoughts over you are shalom — and His thoughts always outrank your circumstances."},
+
+{type:"Prophecy Clue", clue:"In a valley of dry bones, Ezekiel preached to the dead — and the rattling stopped when something stood up in formation. Find what the bones became.", f:1, t:"army",
+ v:[{r:"Ezekiel 37:9", kjv:"Then said he unto me, Prophesy unto the wind, prophesy, son of man, and say to the wind, Thus saith the Lord GOD; Come from the four winds, O breath, and breathe upon these slain, that they may live.", web:"Then he said to me, “Prophesy to the wind, prophesy, son of man, and tell the wind, ‘The Lord Yahweh says: “Come from the four winds, breath, and breathe on these slain, that they may live.”’”"},
+    {r:"Ezekiel 37:10", kjv:"So I prophesied as he commanded me, and the breath came into them, and they lived, and stood up upon their feet, an exceeding great army.", web:"So I prophesied as he commanded me, and the breath came into them, and they lived, and stood up on their feet, an exceedingly great army."}],
+ dig:{ctx:"The vision first pictured Israel in exile — “the whole house of Israel” (v.11), a nation that felt cut off and dried out. God staged the resurrection in two acts: the Word formed the bodies, then the breath made them live. Form without breath is religion; breath without form is chaos.",
+      lang:"Hebrew", word:"chayil — חַיִל", mean:"“army, force, strength” — also used for valor and for a woman of strength in Proverbs 31:10 (“a virtuous woman” is an eshet chayil).",
+      cross:"Cross-reference: Ezekiel 37:14 — God interprets His own vision: “I shall put my spirit in you, and ye shall live.” And Romans 11 looks for the day it fully lands."},
+ truth:"God can preach to your dry places better than you can mourn them. Speak the Word, invite the breath — dead things stand up."},
+
+{type:"Story Clue", clue:"Three men walked unbound in a furnace, but the king counted heads and saw one extra. Find which man Nebuchadnezzar said looked like the Son of God.", f:0, t:"fourth",
+ v:[{r:"Daniel 3:24", kjv:"Then Nebuchadnezzar the king was astonied, and rose up in haste, and spake, and said unto his counsellors, Did not we cast three men bound into the midst of the fire? They answered and said unto the king, True, O king.", web:"Then Nebuchadnezzar the king was astonished, and rose up in haste. He spoke and said to his counselors, “Didn't we cast three men bound into the middle of the fire?” They answered the king, “True, O king.”"},
+    {r:"Daniel 3:25", kjv:"He answered and said, Lo, I see four men loose, walking in the midst of the fire, and they have no hurt; and the form of the fourth is like the Son of God.", web:"He answered, “Look, I see four men loose, walking in the middle of the fire, and they are unharmed. The appearance of the fourth is like a son of the gods.”"}],
+ dig:{ctx:"Shadrach, Meshach, and Abednego had refused the idol knowing God could save them — “but if not” (v.18), they still wouldn't bow. The fourth figure in the fire is one of Scripture's clearest pre-incarnate appearances of Christ: God didn't watch the fire from heaven; He joined them in it.",
+      lang:"Aramaic", word:"bar-elahin — בַּר־אֱלָהִין", mean:"“a son of the gods” — Daniel's court chapters are written in Aramaic, and even a pagan king's words admit: this fourth man is no ordinary man.",
+      cross:"Cross-reference: Isaiah 43:2 — the promise behind the furnace: “when thou walkest through the fire, thou shalt not be burned.” Daniel 3 is that promise with names on it."},
+ truth:"God may not always keep you out of the fire, but He will never make you walk through it alone. Count heads in the flames."},
+
+{type:"Story Clue", clue:"The prophet ran from his assignment and ended up praying from inside the strangest prayer room in Scripture. Find the creature God prepared as Jonah's transport.", f:0, t:"fish",
+ v:[{r:"Jonah 1:17", kjv:"Now the LORD had prepared a great fish to swallow up Jonah. And Jonah was in the belly of the fish three days and three nights.", web:"Yahweh prepared a great fish to swallow up Jonah, and Jonah was in the belly of the fish three days and three nights."},
+    {r:"Jonah 2:1", kjv:"Then Jonah prayed unto the LORD his God out of the fish's belly,", web:"Then Jonah prayed to Yahweh, his God, out of the fish's belly."}],
+ dig:{ctx:"The text never says whale — Hebrew says “great fish,” and the point is not the species but the preparation: God “prepared” the fish the way He later prepared a gourd, a worm, and a wind (Jonah 4). The fish was not Jonah's punishment; it was his rescue from drowning.",
+      lang:"Hebrew", word:"dag gadol — דָּג גָּדוֹל", mean:"“great fish” — dag is an ordinary fish made gadol, great, by the God who appointed it. Jonah's taxi was custom-built.",
+      cross:"Cross-reference: Matthew 12:40 — Jesus takes Jonah as the sign of His own burial and resurrection: “so shall the Son of man be three days and three nights in the heart of the earth.”"},
+ truth:"Sometimes God's rescue doesn't look like rescue at first. If you're still breathing in the belly, preach a prayer — the shore is scheduled."},
+
+{type:"Prophecy Clue", clue:"Micah named the small, overlooked town where Israel's eternal Ruler would be born — centuries before a census sent Mary and Joseph there. Find the town.", f:0, t:"Bethlehem",
+ v:[{r:"Micah 5:2", kjv:"But thou, Bethlehem Ephratah, though thou be little among the thousands of Judah, yet out of thee shall he come forth unto me that is to be ruler in Israel; whose goings forth have been from of old, from everlasting.", web:"But you, Bethlehem Ephrathah, being small among the clans of Judah, out of you one will come out to me to be ruler in Israel; whose goings out are from of old, from ancient times."}],
+ dig:{ctx:"When the wise men arrived in Jerusalem, Herod's scribes quoted this exact verse to locate the newborn king (Matthew 2:5–6) — the prophecy was that specific, that public, and that old. Bethlehem was David's hometown too; the shepherd-king's greater Son would be born in the shepherd's town.",
+      lang:"Hebrew", word:"Beit Lechem — בֵּית לֶחֶם", mean:"“House of Bread” — fitting hometown for the One who would say, “I am the bread of life” (John 6:35).",
+      cross:"Cross-reference: Matthew 2:6 — the chief priests quote Micah to Herod, and Luke 2 shows the census that carried a Nazareth family to Bethlehem right on time."},
+ truth:"God does His world-changing work in little places nobody's watching. Small town, small start — eternal Ruler."},
+
+{type:"Story Clue", clue:"At Jesus' baptism the heavens opened and the Spirit came down gently — not as fire or wind, but in the form of a bird. Find the bird.", f:0, t:"dove",
+ v:[{r:"Matthew 3:16", kjv:"And Jesus, when he was baptized, went up straightway out of the water: and, lo, the heavens were opened unto him, and he saw the Spirit of God descending like a dove, and lighting upon him:", web:"Jesus, when he was baptized, went up directly from the water: and behold, the heavens were opened to him. He saw the Spirit of God descending as a dove, and coming on him."},
+    {r:"Matthew 3:17", kjv:"And lo a voice from heaven, saying, This is my beloved Son, in whom I am well pleased.", web:"Behold, a voice out of the heavens said, “This is my beloved Son, with whom I am well pleased.”"}],
+ dig:{ctx:"All three persons of the Trinity are on stage in this scene: the Son in the water, the Spirit descending, the Father speaking. The dove reaches back to Genesis 1:2, where the Spirit hovered over the waters — and to Noah's dove, the herald of a new world after judgment.",
+      lang:"Greek", word:"peristera — περιστερά", mean:"“dove” — in Israel a symbol of gentleness and purity; the poor person's offering in the temple was a pair of doves (Luke 2:24).",
+      cross:"Cross-reference: John 1:32 — John the Baptist testifies, “I saw the Spirit descending from heaven like a dove, and it abode upon him.” On everyone else the Spirit visited; on Jesus He stayed."},
+ truth:"The Spirit still descends gently. You don't need to be loud to be anointed — sometimes heaven's power lands like a dove."},
+
+{type:"Who Am I?", clue:"Jesus looks at His ordinary followers — fishermen, tax collectors, you — and says, “Ye are the ______ of the world.” Find what He calls you.", f:0, t:"light",
+ v:[{r:"Matthew 5:14", kjv:"Ye are the light of the world. A city that is set on an hill cannot be hid.", web:"You are the light of the world. A city located on a hill can't be hidden."},
+    {r:"Matthew 5:16", kjv:"Let your light so shine before men, that they may see your good works, and glorify your Father which is in heaven.", web:"Even so, let your light shine before men, that they may see your good works and glorify your Father who is in heaven."}],
+ dig:{ctx:"In John 8:12 Jesus says “I am the light of the world” — here He hands the title to His disciples. The light was never ours to generate; it's His, in us, like the moon carrying sunlight. A lamp's whole job is not to be admired but to be positioned.",
+      lang:"Greek", word:"phos — φῶς", mean:"“light” — the word behind “phosphorus” and “photograph”; Jesus uses it for Himself (John 8:12) and then, astonishingly, for you.",
+      cross:"Cross-reference: Philippians 2:14–15 — Paul picks up the image: believers “shine as lights in the world” in the middle of a crooked generation."},
+ truth:"You're not the world's critic-in-chief; you're its light. Shine where you're set — a city on a hill doesn't hide, and neither should you."},
+
+{type:"Story Clue", clue:"To every worn-out, heavy-loaded listener, Jesus made the softest invitation ever spoken: “Come unto me… and I will give you” something. Find the gift.", f:0, t:"rest",
+ v:[{r:"Matthew 11:28", kjv:"Come unto me, all ye that labour and are heavy laden, and I will give you rest.", web:"Come to me, all you who labor and are heavily burdened, and I will give you rest."},
+    {r:"Matthew 11:29", kjv:"Take my yoke upon you, and learn of me; for I am meek and lowly in heart: and ye shall find rest unto your souls.", web:"Take my yoke upon you and learn from me, for I am gentle and humble in heart; and you will find rest for your souls."}],
+ dig:{ctx:"“Heavy laden” pictured people loaded down by the Pharisees' endless religious regulations — “heavy burdens… grievous to be borne” (Matthew 23:4). A yoke joined two animals side by side; Jesus invites us to be yoked with Him, where the stronger partner carries the real weight.",
+      lang:"Greek", word:"anapausis — ἀνάπαυσις", mean:"“rest, refreshing pause” — the word the Greek Old Testament used for Sabbath rest; Jesus offers a Sabbath you carry inside you.",
+      cross:"Cross-reference: Hebrews 4:9–10 — “There remaineth therefore a rest to the people of God,” a rest entered by faith, not earned by labor."},
+ truth:"Jesus doesn't hand rest to the refreshed — He gives it to the loaded. Come as you are: heavy. Leave different: rested."},
+
+{type:"Story Clue", clue:"Zacchaeus was a short, hated tax collector up a tree — and Jesus summed up His whole mission in this one short verse. Find the first thing He came to do to the lost.", f:0, t:"seek",
+ v:[{r:"Luke 19:9", kjv:"And Jesus said unto him, This day is salvation come to this house, forsomuch as he also is a son of Abraham.", web:"Jesus said to him, “Today, salvation has come to this house, because he also is a son of Abraham.”"},
+    {r:"Luke 19:10", kjv:"For the Son of man is come to seek and to save that which was lost.", web:"For the Son of Man came to seek and to save that which was lost."}],
+ dig:{ctx:"Notice the order: seek, then save. The lost coin doesn't find the woman; the lost sheep doesn't find the shepherd; the lost son doesn't get lectured at the gate. In every Luke 15 story, heaven does the seeking — Luke 19 is the mission statement behind them all.",
+      lang:"Greek", word:"zeteo — ζητέω", mean:"“to seek, search for, go after” — the word used for the woman sweeping her whole house for one coin in Luke 15:8.",
+      cross:"Cross-reference: Ezekiel 34:16 — God promised it centuries earlier: “I will seek that which was lost, and bring again that which was driven away.”"},
+ truth:"You were never the searcher first — you were the sought. Let the Seeker's love find you again today, right where you are."},
+
+{type:"Story Clue", clue:"The prodigal rehearsed his apology all the way home — but his father spotted him “a great way off” and did something no dignified patriarch was supposed to do. Find it.", f:0, t:"ran",
+ v:[{r:"Luke 15:19", kjv:"And am no more worthy to be called thy son: make me as one of thy hired servants.", web:"I am no more worthy to be called your son. Make me as one of your hired servants.”"},
+    {r:"Luke 15:20", kjv:"And he arose, and came to his father. But when he was yet a great way off, his father saw him, and had compassion, and ran, and fell on his neck, and kissed him.", web:"He arose, and came to his father. But while he was still far off, his father saw him, and was moved with compassion, and ran, and fell on his neck, and kissed him."}],
+ dig:{ctx:"In Middle Eastern culture, a wealthy elder did not run — running required hitching up his robes and showing his legs, a public humiliation. The father took the shame of the village on himself so his son wouldn't have to walk it. Jesus is describing His own Father.",
+      lang:"Greek", word:"trecho — τρέχω", mean:"“to run” — the father ran; the same root describes the race Paul urges us to run (1 Corinthians 9:24), but here heaven does the running toward us.",
+      cross:"Cross-reference: Luke 15:7 — “joy shall be in heaven over one sinner that repenteth.” The father's run is heaven's joy with its sandals on."},
+ truth:"You don't have to reach the porch to be embraced. Start for home — the Father is already running your direction."},
+
+{type:"Who Am I?", clue:"“In the beginning was the ______, and I was with God, and I was God — and later I became flesh and dwelt among you.” John gives Jesus this name. Find it.", f:0, t:"Word",
+ v:[{r:"John 1:1", kjv:"In the beginning was the Word, and the Word was with God, and the Word was God.", web:"In the beginning was the Word, and the Word was with God, and the Word was God."},
+    {r:"John 1:14", kjv:"And the Word was made flesh, and dwelt among us, (and we beheld his glory, the glory as of the only begotten of the Father,) full of grace and truth.", web:"The Word became flesh and lived among us. We saw his glory, such glory as of the one and only Son of the Father, full of grace and truth."}],
+ dig:{ctx:"John wrote for both Jews and Greeks. To Jewish ears, “the Word of the LORD” was God in action — creating, revealing, saving. To Greek ears, the Logos was the rational order behind the universe. John says: that Word has a face, and it pitched its tent among us — “dwelt” literally means tabernacled.",
+      lang:"Greek", word:"Logos — λόγος", mean:"“word, message, reason” — God expressing Himself; not just speech, but His mind and heart made known. In Jesus, the message became a Man.",
+      cross:"Cross-reference: Revelation 19:13 — the returning King rides with this very name written on Him: “his name is called The Word of God.”"},
+ truth:"God is not silent and He's not far. He spoke — and His Word has a name, a face, and scars. Listen to Him."},
+
+{type:"Story Clue", clue:"The most quoted verse on earth packs the whole gospel into one sentence: God's love, God's gift, and the promise at the end. Find what believers will have forever.", f:0, t:"life",
+ v:[{r:"John 3:16", kjv:"For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.", web:"For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life."},
+    {r:"John 3:17", kjv:"For God sent not his Son into the world to condemn the world; but that the world through him might be saved.", web:"For God didn't send his Son into the world to judge the world, but that the world should be saved through him."}],
+ dig:{ctx:"Jesus spoke these words at night to Nicodemus, a cautious religious expert who came in the dark. “So loved” means “loved in this way, to this degree” — the measure of God's love is not a feeling described but a Son given.",
+      lang:"Greek", word:"zoe — ζωή", mean:"“life” — full, real, eternal life; John uses zoe for the life Jesus gives, distinct from mere biological existence. It starts now, not just after death.",
+      cross:"Cross-reference: John 10:10 — Jesus defines the offer: “I am come that they might have life, and that they might have it more abundantly.”"},
+ truth:"Eternal life isn't just length — it's quality, starting the moment you believe. Whosoever means you. It always has."},
+
+{type:"Who Am I?", clue:"Standing by a tomb, Jesus tells a grieving Martha: “I am the ______ and the life” — not just that He can raise the dead, but that He IS it. Find the word.", f:0, t:"resurrection",
+ v:[{r:"John 11:24", kjv:"Martha saith unto him, I know that he shall rise again in the resurrection at the last day.", web:"Martha said to him, “I know that he will rise again in the resurrection at the last day.”"},
+    {r:"John 11:25", kjv:"Jesus said unto her, I am the resurrection, and the life: he that believeth in me, though he were dead, yet shall he live:", web:"Jesus said to her, “I am the resurrection and the life. He who believes in me will still live, even if he dies.”"}],
+ dig:{ctx:"Martha believed in a resurrection someday, far away — good theology, cold comfort. Jesus moved it from a date on the calendar to a Person standing in front of her: resurrection is not an event you wait for; it's Someone you trust. Then He proved it by calling Lazarus out.",
+      lang:"Greek", word:"anastasis — ἀνάστασις", mean:"“a standing up again” — ana (again) + stasis (standing); the word painted on every empty tomb since.",
+      cross:"Cross-reference: 1 Corinthians 15:20 — Christ's resurrection is the “firstfruits of them that slept”: His rising is the down payment and pattern of ours."},
+ truth:"Your hope is not a doctrine on a shelf — it's a Person who stood at a grave and called a dead man by name. He knows yours too."},
+
+{type:"Story Clue", clue:"Jesus' last promise before ascending: “Ye shall receive ______ when the Holy Ghost comes on you.” It's the same word we get “dynamite” from. Find it.", f:0, t:"power",
+ v:[{r:"Acts 1:7", kjv:"And he said unto them, It is not for you to know the times or the seasons, which the Father hath put in his own power.", web:"He said to them, “It isn't for you to know times or seasons which the Father has set within his own authority.”"},
+    {r:"Acts 1:8", kjv:"But ye shall receive power, after that the Holy Ghost is come upon you: and ye shall be witnesses unto me both in Jerusalem, and in all Judaea, and in Samaria, and unto the uttermost part of the earth.", web:"But you will receive power when the Holy Spirit has come upon you. You will be witnesses to me in Jerusalem, in all Judea and Samaria, and to the uttermost parts of the earth."}],
+ dig:{ctx:"The disciples asked about a political kingdom; Jesus answered with a mission and the equipment for it. Acts 1:8 doubles as the book's table of contents: Jerusalem (ch. 1–7), Judea and Samaria (ch. 8–12), the ends of the earth (ch. 13–28).",
+      lang:"Greek", word:"dynamis — δύναμις", mean:"“power, ability, might” — the root of “dynamite” and “dynamic”; not human hype but heaven's enablement for witness.",
+      cross:"Cross-reference: Luke 24:49 — Jesus calls it being “endued with power from on high,” and Acts 2 shows the delivery arriving on Pentecost morning."},
+ truth:"God never gives a mission without the power to match. Stop asking if you're able — ask if you're filled."},
+
+{type:"Wisdom Clue", clue:"Paul's most-loved promise says God runs a workshop where every single thing — even the hard things — gets worked into a pattern. Find the word that says nothing works alone.", f:0, t:"together",
+ v:[{r:"Romans 8:28", kjv:"And we know that all things work together for good to them that love God, to them who are the called according to his purpose.", web:"We know that all things work together for good for those who love God, for those who are called according to his purpose."},
+    {r:"Romans 8:29", kjv:"For whom he did foreknow, he also did predestinate to be conformed to the image of his Son, that he might be the firstborn among many brethren.", web:"For whom he foreknew, he also predestined to be conformed to the image of his Son, that he might be the firstborn among many brothers."}],
+ dig:{ctx:"Paul doesn't say all things are good — betrayal, loss, and chains fill his own story. He says all things work together, like ingredients: flour and salt alone are hard to swallow, but in the Baker's hands they come out bread. The promise is for those who love God — the pattern is His purpose (v.29): making us like Jesus.",
+      lang:"Greek", word:"synergei — συνεργεῖ", mean:"“works together with” — syn (with) + ergon (work); the word behind “synergy.” Circumstances cooperate because God is conducting them.",
+      cross:"Cross-reference: Genesis 50:20 — Joseph said it first in Hebrew: “ye thought evil against me; but God meant it unto good.” Paul is preaching Joseph's testimony."},
+ truth:"Stop grading single ingredients. God is making something out of ALL of it — and in His kitchen, nothing is wasted."},
+
+{type:"Wisdom Clue", clue:"Faith will last. Hope will last. Love will last. But Paul says one of the three outranks the others — find the word that measures them.", f:1, t:"greatest",
+ v:[{r:"1 Corinthians 13:4", kjv:"Charity suffereth long, and is kind; charity envieth not; charity vaunteth not itself, is not puffed up,", web:"Love is patient and is kind. Love doesn't envy. Love doesn't brag, is not proud,"},
+    {r:"1 Corinthians 13:13", kjv:"And now abideth faith, hope, charity, these three; but the greatest of these is charity.", web:"But now faith, hope, and love remain—these three. The greatest of these is love."}],
+ dig:{ctx:"Corinth was a gifted, noisy, divided church — tongues, prophecy, knowledge, and plenty of pride. Paul inserts this chapter like a jewel between two chapters on spiritual gifts to say: gifts are the vehicle, love is the destination. Faith and hope will one day be swallowed by sight and arrival; love is forever because God is love.",
+      lang:"Greek", word:"meizon — μείζων", mean:"“greater, greatest” — comparative of megas; Paul ranks love not as the softest of the three but as the biggest thing in the room.",
+      cross:"Cross-reference: Colossians 3:14 — love is “the bond of perfectness,” the belt that holds every other virtue together; and 1 John 4:8 roots it all: “God is love.”"},
+ truth:"You can be gifted and still be empty. Chase the greatest thing — love that suffers long and stays kind never goes out of season."},
+
+{type:"Wisdom Clue", clue:"Paul pictures the Holy Spirit like an orchard: one harvest with nine flavors, and the whole crop grows from a single word. Find what the Spirit grows.", f:0, t:"fruit",
+ v:[{r:"Galatians 5:22", kjv:"But the fruit of the Spirit is love, joy, peace, longsuffering, gentleness, goodness, faith,", web:"But the fruit of the Spirit is love, joy, peace, patience, kindness, goodness, faith,"},
+    {r:"Galatians 5:23", kjv:"Meekness, temperance: against such there is no law.", web:"gentleness, and self-control. Against such things there is no law."}],
+ dig:{ctx:"Note the grammar: “fruit” is singular, but the list is ninefold — one fruit, many flavors. And fruit is grown, not manufactured: nobody strains to produce an apple; the branch stays connected and the orchard happens. Paul contrasts it with “works of the flesh” (v.19) — works are made, fruit is grown.",
+      lang:"Greek", word:"karpos — καρπός", mean:"“fruit, harvest, result” — Jesus used it as the ultimate test: “by their fruits ye shall know them” (Matthew 7:20).",
+      cross:"Cross-reference: John 15:5 — “I am the vine, ye are the branches… he that abideth in me… bringeth forth much fruit.” Staying connected is the whole farming method."},
+ truth:"Don't strain to be loving — stay rooted. Fruit is what the Spirit does in people who refuse to unplug from the Vine."},
+
+{type:"Wisdom Clue", clue:"The armor of God ends with the only weapon on the list — every other piece is defense. Find the weapon, which Paul says is the word of God.", f:1, t:"sword",
+ v:[{r:"Ephesians 6:16", kjv:"Above all, taking the shield of faith, wherewith ye shall be able to quench all the fiery darts of the wicked.", web:"Above all, taking up the shield of faith, with which you will be able to quench all the fiery darts of the evil one."},
+    {r:"Ephesians 6:17", kjv:"And take the helmet of salvation, and the sword of the Spirit, which is the word of God:", web:"And take the helmet of salvation, and the sword of the Spirit, which is the word of God;"}],
+ dig:{ctx:"Paul wrote this chained to a Roman soldier, studying the armor at arm's length. The machaira was the short sword for close combat — and Paul says our close-combat weapon is the spoken word of God. Jesus modeled it in the wilderness: three temptations, three quotations — “It is written.”",
+      lang:"Greek", word:"machaira — μάχαιρα", mean:"“short sword, dagger” — and the “word” here is rhema (ῥῆμα), God's spoken, specific word for a specific fight, not just ink on a page.",
+      cross:"Cross-reference: Hebrews 4:12 — “the word of God is quick, and powerful, and sharper than any twoedged sword.” Your sword is alive."},
+ truth:"Bible on the shelf is a sword in the scabbard. Learn it, speak it, swing it — “It is written” still wins fights."},
+
+{type:"Story Clue", clue:"From a prison cell, Paul makes the boldest claim a believer can make: “I can do all things through Christ.” Find the word for what Christ keeps doing in him.", f:0, t:{kjv:"strengtheneth", web:"strengthens"},
+ v:[{r:"Philippians 4:12", kjv:"I know both how to be abased, and I know how to abound: every where and in all things I am instructed both to be full and to be hungry, both to abound and to suffer need.", web:"I know how to be humbled, and I also know how to abound. In everything and in all things I have learned the secret both to be filled and to be hungry, both to abound and to be in need."},
+    {r:"Philippians 4:13", kjv:"I can do all things through Christ which strengtheneth me.", web:"I can do all things through Christ, who strengthens me."}],
+ dig:{ctx:"Context is everything: Paul isn't claiming superpowers — verse 12 shows he's talking about contentment in plenty and in hunger. The “all things” he can do includes enduring lack without losing joy, because Christ keeps infusing strength from the inside.",
+      lang:"Greek", word:"endynamoo — ἐνδυναμόω", mean:"“to pour strength into” — the same word used when God strengthened Abraham (Romans 4:20); Christ doesn't just watch us try, He supplies the trying.",
+      cross:"Cross-reference: 2 Corinthians 12:9 — the secret behind the strength: “My grace is sufficient for thee: for my strength is made perfect in weakness.”"},
+ truth:"Your strength has a source code, and it isn't you. Plugged into Christ, you can do the thing in front of you — even this one."},
+
+{type:"Wisdom Clue", clue:"Hebrews 11 opens with a definition worth memorizing: faith is not a wish — it has weight and it serves as proof. Find the ground faith stands on.", f:0, t:"faith",
+ v:[{r:"Hebrews 11:1", kjv:"Now faith is the substance of things hoped for, the evidence of things not seen.", web:"Now faith is assurance of things hoped for, proof of things not seen."},
+    {r:"Hebrews 11:3", kjv:"Through faith we understand that the worlds were framed by the word of God, so that things which are seen were not made of things which do appear.", web:"By faith we understand that the universe has been framed by the word of God, so that what is seen has not been made out of things which are visible."}],
+ dig:{ctx:"Hebrews 11 is the Bible's hall of faith — Abel, Noah, Abraham, Sarah, Moses — yet it opens with a definition before a single story. “Substance” translates a business word used for a title deed: faith is the legal document that proves the unseen property is really yours.",
+      lang:"Greek", word:"hypostasis — ὑπόστασις", mean:"“substance, foundation, title deed” — the KJV's “substance”; and pistis (πίστις), “faith,” means firm persuasion, not a crossed-fingers wish.",
+      cross:"Cross-reference: Hebrews 11:6 — “without faith it is impossible to please him,” and 2 Corinthians 5:7 gives the lifestyle: “we walk by faith, not by sight.”"},
+ truth:"Faith is not pretending. It's the title deed to things your eyes haven't seen yet — hold it like you hold a deed: confidently."},
+
+{type:"Story Clue", clue:"Jesus stands outside a closed heart the way a friend stands at a front step in the evening — knocking, waiting to be invited in for supper. Find what He stands at.", f:0, t:"door",
+ v:[{r:"Revelation 3:19", kjv:"As many as I love, I rebuke and chasten: be zealous therefore, and repent.", web:"As many as I love, I reprove and chasten. Be zealous therefore, and repent."},
+    {r:"Revelation 3:20", kjv:"Behold, I stand at the door, and knock: if any man hear my voice, and open the door, I will come in to him, and will sup with him, and he with me.", web:"Behold, I stand at the door and knock. If anyone hears my voice and opens the door, I will come in to him, and will dine with him, and he with me."}],
+ dig:{ctx:"Shockingly, this was written not to strangers but to a church — Laodicea, wealthy and lukewarm, who had somehow locked Jesus outside their own fellowship. The handle, as the old painting shows, is only on the inside: Christ knocks; He does not force.",
+      lang:"Greek", word:"thyra — θύρα", mean:"“door” — the same word Jesus used of Himself in John 10:9: “I am the door.” The Door stands at our door, knocking.",
+      cross:"Cross-reference: Song of Solomon 5:2 echoes the scene — “the voice of my beloved that knocketh, saying, Open to me” — love has always knocked before entering."},
+ truth:"Jesus is a gentleman — He knocks, He waits, He hopes you'll open. Supper with the King is one decision away. Open the door."},
+
+{type:"Prophecy Clue", clue:"In the new heaven and new earth, God personally does the tenderest thing in the whole Bible — a Father drying a child's face forever. Find what He wipes away.", f:0, t:{kjv:"tears", web:"tear"},
+ v:[{r:"Revelation 21:3", kjv:"And I heard a great voice out of heaven saying, Behold, the tabernacle of God is with men, and he will dwell with them, and they shall be his people, and God himself shall be with them, and be their God.", web:"I heard a loud voice out of heaven saying, “Behold, God's dwelling is with people, and he will dwell with them, and they will be his people, and God himself will be with them as their God.”"},
+    {r:"Revelation 21:4", kjv:"And God shall wipe away all tears from their eyes; and there shall be no more death, neither sorrow, nor crying, neither shall there be any more pain: for the former things are passed away.", web:"He will wipe away every tear from their eyes. Death will be no more; neither will there be mourning, nor crying, nor pain, any more. The first things have passed away."}],
+ dig:{ctx:"Revelation 21 is the Bible's last chapter of the old story: the “no mores” pile up — no more death, sorrow, crying, or pain. And God Himself does the wiping; He doesn't delegate the tears. The hand that made the galaxies will dry your face.",
+      lang:"Greek", word:"dakryon — δάκρυον", mean:"“a tear” — the tender noun behind Hebrews 5:7, where Jesus Himself prayed “with strong crying and tears.” He knows the inventory He'll be wiping.",
+      cross:"Cross-reference: Isaiah 25:8 — the promise is ancient: “He will swallow up death in victory; and the Lord GOD will wipe away tears from off all faces.”"},
+ truth:"Every tear you've cried is on heaven's list to be answered personally. The last word of your story is a wiped face and a dry eye — forever."},
+
+{type:"Who Am I?", clue:"“I am Alpha and ______, the beginning and the end, the first and the last.” Jesus signs the Bible's final page with the first and last letters of the Greek alphabet. Find the last one.", f:0, t:"Omega",
+ v:[{r:"Revelation 22:12", kjv:"And, behold, I come quickly; and my reward is with me, to give every man according as his work shall be.", web:"“Behold, I am coming soon! My reward is with me, to give to each according to his work.”"},
+    {r:"Revelation 22:13", kjv:"I am Alpha and Omega, the beginning and the end, the first and the last.", web:"I am the Alpha and the Omega, the First and the Last, the Beginning and the End.”"}],
+ dig:{ctx:"Alpha is the first letter of the Greek alphabet, Omega the last — Jesus is saying He spans the whole language of existence; nothing true can be spelled outside of Him. The Bible that began “In the beginning God” ends with the same God signing His name over the last page.",
+      lang:"Greek", word:"Omega — Ω", mean:"“the last letter” — Jesus claims the end of the alphabet and the end of the story; Revelation applies this title to God (1:8) and to Jesus alike.",
+      cross:"Cross-reference: Isaiah 44:6 — “I am the first, and I am the last; and beside me there is no God.” Jesus takes the LORD's own signature as His own."},
+ truth:"He was there at your beginning and He holds your end — and every letter in between spells loved. You can rest inside His alphabet."}
+];
+
+/* ================= STATE ================= */
+var DEPTHS = ["","On the Shore","Ankle Deep","Knee Deep","Waist Deep","Deep Water"];
+var state = {
+  depth: 3, journey: 12, playerCount: 1, trans: "kjv", clock: false,
+  players: [], deck: [], huntIdx: 0, gems: {}, vault: [],
+  current: null, tokens: [], targetIdxs: [], decoyIdxs: [],
+  page: 0, pages: [], hintLevel: 0, startTime: 0, timerInt: null,
+  vaultReturn: "home", finished: false
+};
+
+function $(id){ return document.getElementById(id); }
+function show(id){
+  var screens = document.querySelectorAll(".screen");
+  for (var i=0;i<screens.length;i++) screens[i].classList.remove("on");
+  $(id).classList.add("on");
+  window.scrollTo(0,0);
+}
+function shuffle(a){
+  for (var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+function targetWord(h){ return (typeof h.t === "string") ? h.t : h.t[state.trans]; }
+function clean(w){ return w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g,""); }
+function sameWord(a,b){ return clean(a).toLowerCase() === clean(b).toLowerCase(); }
+
+/* ================= AUDIO ================= */
+var actx = null;
+function audio(){
+  if (!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ actx=null; } }
+  if (actx && actx.state === "suspended") actx.resume();
+  return actx;
+}
+function tone(freq, t0, dur, type, vol){
+  var ac = audio(); if (!ac) return;
+  var o = ac.createOscillator(), g = ac.createGain();
+  o.type = type||"sine"; o.frequency.value = freq;
+  var start = ac.currentTime + t0;
+  g.gain.setValueAtTime(0.0001, start);
+  g.gain.exponentialRampToValueAtTime(vol||0.16, start+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, start+dur);
+  o.connect(g); g.connect(ac.destination);
+  o.start(start); o.stop(start+dur+0.05);
+}
+function chimeFound(){ tone(659.25,0,0.35,"sine",0.16); tone(783.99,0.09,0.4,"sine",0.16); tone(1046.5,0.18,0.6,"sine",0.18); tone(1318.5,0.28,0.7,"triangle",0.10); }
+function chimeWiggle(){ tone(220,0,0.12,"triangle",0.06); }
+function chimeWarm(){ tone(392,0,0.15,"sine",0.07); tone(523.25,0.07,0.2,"sine",0.07); }
+function speak(text){
+  try{
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.95; u.pitch = 1.0;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function stopSpeak(){ try{ if ("speechSynthesis" in window) window.speechSynthesis.cancel(); }catch(e){} }
+
+/* ================= SETUP WIRING ================= */
+function segWire(id, attr, cb){
+  $(id).addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    var btns = $(id).querySelectorAll("button");
+    for (var i=0;i<btns.length;i++) btns[i].classList.remove("sel");
+    b.classList.add("sel");
+    cb(b.getAttribute(attr));
+  });
+}
+segWire("depth-seg","data-depth",function(v){ state.depth = parseInt(v,10); });
+segWire("journey-seg","data-journey",function(v){ state.journey = parseInt(v,10); });
+segWire("trans-seg","data-trans",function(v){ state.trans = v; });
+segWire("players-seg","data-players",function(v){
+  state.playerCount = parseInt(v,10);
+  $("names-box").classList.toggle("on", state.playerCount > 1);
+  for (var i=1;i<=4;i++){ $("name"+i).style.display = (i<=state.playerCount) ? "block" : "none"; }
+});
+$("how-btn").addEventListener("click", function(){
+  var c = $("how-card"); c.style.display = (c.style.display==="none"||!c.style.display) ? "block" : "none";
+  if (c.style.display==="block") c.scrollIntoView({behavior:"smooth", block:"nearest"});
+});
+$("test-sound").addEventListener("click", function(){
+  audio(); chimeFound();
+  speak("This is the sound of a treasure found. Happy hunting, seeker.");
+});
+
+/* ================= GAME FLOW ================= */
+$("start-btn").addEventListener("click", function(){ audio(); startJourney(); });
+$("again-btn").addEventListener("click", function(){ audio(); startJourney(); });
+
+function startJourney(){
+  stopSpeak();
+  state.players = [];
+  if (state.playerCount === 1){ state.players = ["Seeker"]; }
+  else{
+    for (var i=1;i<=state.playerCount;i++){
+      var nm = $("name"+i).value.trim();
+      state.players.push(nm || ("Seeker "+i));
+    }
+  }
+  state.gems = {};
+  for (var p=0;p<state.players.length;p++) state.gems[state.players[p]] = 0;
+  state.vault = [];
+  state.deck = shuffle(HUNTS.slice());
+  state.huntIdx = 0;
+  state.finished = false;
+  dealHunt(true);
+}
+
+function currentPlayer(){
+  return state.players[state.huntIdx % state.players.length];
+}
+
+function dealHunt(first){
+  stopTimer(); stopSpeak();
+  if (state.journey > 0 && state.huntIdx >= state.journey){ finishJourney(); return; }
+  if (state.huntIdx >= state.deck.length){
+    /* Endless or long journey: reshuffle a fresh deck and keep going */
+    state.deck = shuffle(HUNTS.slice());
+    state.huntIdx = state.journey > 0 ? state.huntIdx : 0;
+    if (state.journey === 0){ /* endless keeps counting via vault length */ }
+    else if (state.huntIdx >= state.deck.length){ state.huntIdx = 0; }
+  }
+  var deckPos = state.journey === 0 ? (state.vault.length % state.deck.length) : (state.huntIdx % state.deck.length);
+  if (state.journey > 0 && state.huntIdx >= state.deck.length) deckPos = state.huntIdx % state.deck.length;
+  state.current = state.deck[deckPos];
+  state.hintLevel = 0;
+  state.huntDone = false;
+  buildPassage();
+  if (state.players.length > 1 && !first){
+    $("curtain-title").textContent = "Pass the phone to " + currentPlayer();
+    $("curtain-text").textContent = "Your hunt is ready, " + currentPlayer() + ". The clue stays hidden until you're holding the phone.";
+    show("scr-curtain");
+  } else {
+    show("scr-game");
+  }
+  startTimer();
+}
+$("curtain-btn").addEventListener("click", function(){ audio(); show("scr-game"); });
+
+function versesForDepth(h){
+  var d = state.depth;
+  var count = d===1 ? 1 : d===2 ? 2 : d===3 ? 3 : h.v.length;
+  var start = Math.max(0, Math.min(h.f, h.v.length - count));
+  if (h.f - start < count - 1) start = Math.max(0, h.f - (count-1));
+  start = Math.max(0, Math.min(start, h.v.length - count));
+  return h.v.slice(start, start + count);
+}
+
+function buildPassage(){
+  var h = state.current;
+  var tw = targetWord(h);
+  var verses = versesForDepth(h);
+  /* tokenize */
+  state.tokens = []; state.targetIdxs = []; state.decoyIdxs = [];
+  var html = "";
+  var focusRef = h.v[h.f].r;
+  verses.forEach(function(vs){
+    html += '<div class="verse"><span class="vnum">' + vs.r + '</span><p>';
+    var words = vs[state.trans].split(/\s+/);
+    words.forEach(function(w){
+      var idx = state.tokens.length;
+      state.tokens.push({word:w, ref:vs.r});
+      if (sameWord(w, tw)) state.targetIdxs.push(idx);
+      html += '<button class="w" data-idx="' + idx + '">' + w + '</button> ';
+    });
+    html += '</p></div>';
+  });
+  /* decoys: same-first-letter words, count scales with depth; re-drawn every build */
+  var firstLetter = clean(tw).charAt(0).toLowerCase();
+  var candidates = [];
+  state.tokens.forEach(function(tk, i){
+    if (state.targetIdxs.indexOf(i) === -1 && clean(tk.word).charAt(0).toLowerCase() === firstLetter && clean(tk.word).length > 2) candidates.push(i);
+  });
+  shuffle(candidates);
+  var decoyCount = [0,0,1,2,4,6][state.depth];
+  state.decoyIdxs = candidates.slice(0, decoyCount);
+  /* pages: chunk verses into pages of ~55 words */
+  var verseEls = html; /* verses already grouped; paginate by verse divs */
+  state.pages = paginate(verses);
+  state.page = 0;
+  /* pick the page that holds the focus verse first if target lives there; start on page 1 for the hunt feel */
+  renderPage();
+  /* HUD + clue */
+  var total = state.journey === 0 ? "∞" : state.journey;
+  var num = state.journey === 0 ? (state.vault.length + 1) : (state.huntIdx + 1);
+  $("hud-hunt").textContent = num + (state.journey===0 ? "" : " of " + total);
+  $("hud-depth").textContent = DEPTHS[state.depth];
+  updateGemsHud();
+  $("turn-bar").textContent = state.players.length > 1 ? ("✦ " + currentPlayer() + "'s Hunt ✦") : "";
+  $("clue-type").textContent = h.type;
+  $("clue-book").textContent = focusRef.split(" ").slice(0,-1).join(" ") || focusRef;
+  $("clue-text").textContent = h.clue;
+  $("book-ref").textContent = verses[0].r + (verses.length>1 ? " – " + verses[verses.length-1].r : "") + (state.trans==="kjv" ? " · KJV" : " · WEB");
+  $("letter-box").classList.remove("on"); $("letter-box").textContent = "";
+  $("feedback").textContent = "The treasure is hidden in this passage. Trust the hunt.";
+  updateHintBtn();
+  /* if target page not first, that's part of the hunt */
+}
+
+function paginate(verses){
+  var pages = [], cur = [], count = 0, limit = 58;
+  verses.forEach(function(vs){
+    var wc = vs[state.trans].split(/\s+/).length;
+    if (count > 0 && count + wc > limit){ pages.push(cur); cur = []; count = 0; }
+    cur.push(vs); count += wc;
+  });
+  if (cur.length) pages.push(cur);
+  return pages;
+}
+
+function renderPage(){
+  var h = state.current, tw = targetWord(h);
+  var box = $("book-pages"); box.innerHTML = "";
+  var startIdx = 0;
+  /* compute token offset for this page */
+  var offset = 0;
+  for (var p=0;p<state.page;p++){
+    state.pages[p].forEach(function(vs){ offset += vs[state.trans].split(/\s+/).length; });
+  }
+  state.pages[state.page].forEach(function(vs){
+    var div = document.createElement("div"); div.className = "verse";
+    var vn = document.createElement("span"); vn.className = "vnum"; vn.textContent = vs.r;
+    var par = document.createElement("p");
+    div.appendChild(vn); div.appendChild(par);
+    vs[state.trans].split(/\s+/).forEach(function(w){
+      var idx = offset++;
+      var b = document.createElement("button");
+      b.className = "w"; b.textContent = w; b.setAttribute("data-idx", idx);
+      if (state.hintLevel >= 1 && nearTarget(idx)) b.classList.add("glow");
+      if (state.hintLevel >= 3 && state.targetIdxs.indexOf(idx) !== -1) b.classList.add("pulse");
+      b.addEventListener("click", function(){ tapWord(idx, b); });
+      par.appendChild(b);
+      par.appendChild(document.createTextNode(" "));
+    });
+    box.appendChild(div);
+  });
+  $("page-info").textContent = "Page " + (state.page+1) + " of " + state.pages.length;
+  $("page-prev").disabled = state.page === 0;
+  $("page-next").disabled = state.page >= state.pages.length - 1;
+}
+$("page-prev").addEventListener("click", function(){ if (state.page>0){ state.page--; renderPage(); } });
+$("page-next").addEventListener("click", function(){ if (state.page<state.pages.length-1){ state.page++; renderPage(); } });
+
+function nearTarget(idx){
+  for (var i=0;i<state.targetIdxs.length;i++){ if (Math.abs(state.targetIdxs[i]-idx) <= 5) return true; }
+  return false;
+}
+function targetPage(){
+  /* page containing first target token */
+  var first = state.targetIdxs[0], offset = 0;
+  for (var p=0;p<state.pages.length;p++){
+    var cnt = 0;
+    state.pages[p].forEach(function(vs){ cnt += vs[state.trans].split(/\s+/).length; });
+    if (first < offset + cnt) return p;
+    offset += cnt;
+  }
+  return 0;
+}
+
+function tapWord(idx, el){
+  if (state.huntDone) return;
+  var h = state.current;
+  if (state.targetIdxs.indexOf(idx) !== -1){ foundTreasure(el); return; }
+  el.classList.remove("wiggle"); void el.offsetWidth; el.classList.add("wiggle");
+  var dist = Infinity;
+  state.targetIdxs.forEach(function(t){ dist = Math.min(dist, Math.abs(t-idx)); });
+  var tp = targetPage();
+  var msg;
+  if (state.decoyIdxs.indexOf(idx) !== -1){
+    msg = "That one wiggles — same first letter as the treasure, but it's a decoy. Keep hunting!";
+    chimeWiggle();
+  } else if (tp !== state.page){
+    msg = tp > state.page ? "Cold here — the treasure waits on a later page. Turn onward →" : "You've passed it — the treasure rests on an earlier page. ← Turn back.";
+    chimeWiggle();
+  } else if (dist <= 3){ msg = "Burning warm! 🔥 The treasure is right beside that word."; chimeWarm(); }
+  else if (dist <= 8){ msg = "Warm… you're closing in on it."; chimeWarm(); }
+  else if (dist <= 15){ msg = "Cool. The treasure is further along — keep seeking."; chimeWiggle(); }
+  else { msg = "Cold for now — but every seeker who keeps going finds. Onward."; chimeWiggle(); }
+  $("feedback").textContent = msg;
+}
+
+/* ---------- Hint ladder ---------- */
+function updateHintBtn(){
+  var labels = ["💡 Hint — Gather a Warm Glow", "💡 Hint — Reveal the First Letter", "💡 Hint — Show Me the Treasure (with grace)", "The treasure is shining — tap the gold word ✦"];
+  $("hint-btn").textContent = labels[state.hintLevel];
+  $("hint-btn").disabled = state.hintLevel >= 3;
+}
+$("hint-btn").addEventListener("click", function(){
+  audio();
+  var h = state.current, tw = targetWord(h);
+  state.hintLevel++;
+  if (state.hintLevel === 1){
+    var tp = targetPage();
+    if (tp !== state.page){ state.page = tp; }
+    renderPage();
+    $("feedback").textContent = "A warm glow gathers around the treasure's neighborhood. Look for the shining words.";
+  } else if (state.hintLevel === 2){
+    $("letter-box").textContent = "✦ The treasure word begins with the letter “" + clean(tw).charAt(0).toUpperCase() + "”.";
+    $("letter-box").classList.add("on");
+    $("feedback").textContent = "First letter revealed. You've got this — the gold is close.";
+  } else if (state.hintLevel === 3){
+    var tp2 = targetPage();
+    if (tp2 !== state.page){ state.page = tp2; }
+    renderPage();
+    $("feedback").textContent = "Grace upon grace — there it is, shining. Tap the treasure and claim it.";
+  }
+  updateHintBtn();
+});
+
+/* ---------- Found ---------- */
+function foundTreasure(el){
+  stopTimer(); state.huntDone = true;
+  var h = state.current, tw = targetWord(h);
+  var focus = h.v[h.f];
+  var verseText = focus[state.trans];
+  /* mark all matching target words on this page gold */
+  var btns = $("book-pages").querySelectorAll(".w");
+  btns.forEach(function(b){ if (sameWord(b.textContent, tw)) b.classList.add("found"); });
+  chimeFound();
+  /* gems: base by depth, hint cost gentle, clock bonus */
+  var earned = 10 + state.depth * 5 - state.hintLevel * 3;
+  if (earned < 10) earned = 10;
+  var bonusNote = "";
+  if (state.clock){
+    var secs = Math.floor((Date.now() - state.startTime)/1000);
+    if (secs <= 60){ earned += 5; bonusNote = " Swift-find bonus +5."; }
+  }
+  var player = currentPlayer();
+  state.gems[player] += earned;
+  state.vault.push({ref: focus.r, text: verseText, word: tw, player: player, gems: earned, hunt: h});
+  /* found screen */
+  $("found-title").textContent = state.hintLevel >= 3 ? "Treasure Revealed — and It's Yours" : "Treasure Found!";
+  $("found-gems").innerHTML = (state.players.length>1 ? player + " earned " : "You earned ") + "<b>💎 " + earned + " gems</b>" + bonusNote;
+  var marked = verseText.split(/\s+/).map(function(w){ return sameWord(w, tw) ? "<b>"+w+"</b>" : w; }).join(" ");
+  $("found-verse").innerHTML = "“" + marked + "”";
+  $("found-ref").textContent = focus.r + (state.trans==="kjv" ? " · King James Version" : " · World English Bible");
+  $("dig-context").textContent = h.dig.ctx;
+  $("dig-word").textContent = h.dig.word;
+  $("dig-wordmean").textContent = h.dig.lang + " — " + h.dig.mean;
+  $("dig-cross").innerHTML = "<b>Go further:</b> " + h.dig.cross;
+  $("found-truth").textContent = h.truth;
+  setTimeout(function(){
+    show("scr-found");
+    var c = $("celebrate");
+    for (var i=0;i<14;i++){
+      var s = document.createElement("span"); s.className = "sparkle";
+      s.style.left = (8 + Math.random()*84) + "%"; s.style.top = (10 + Math.random()*30) + "px";
+      s.style.animationDelay = (Math.random()*0.5) + "s";
+      if (i%3===0) s.style.background = "#E58A8A";
+      c.appendChild(s);
+      (function(el){ setTimeout(function(){ el.remove(); }, 2400); })(s);
+    }
+  }, 650);
+}
+$("hear-clue").addEventListener("click", function(){
+  var h = state.current; if (!h) return;
+  speak(h.type + ". " + h.clue + " The passage is " + h.v[h.f].r + ".");
+});
+$("hear-verse").addEventListener("click", function(){
+  var h = state.current; if (!h) return;
+  speak(h.v[h.f][state.trans] + " — " + h.v[h.f].r);
+});
+$("next-btn").addEventListener("click", function(){
+  audio();
+  state.huntIdx++;
+  if (state.journey === 0){ dealHunt(false); return; }
+  dealHunt(false);
+});
+
+/* ---------- Timer (optional bonus clock) ---------- */
+function startTimer(){
+  state.startTime = Date.now();
+  if (state.clock){
+    $("timer-bar").textContent = "⏱ Bonus clock running — a find within 60 seconds earns +5 gems. No penalty, ever.";
+    state.timerInt = setInterval(function(){
+      var secs = Math.floor((Date.now()-state.startTime)/1000);
+      $("timer-bar").textContent = "⏱ " + secs + "s" + (secs<=60 ? " — swift-find bonus still glowing" : " — take your time, seeker");
+    }, 1000);
+  } else { $("timer-bar").textContent = ""; }
+}
+function stopTimer(){ if (state.timerInt){ clearInterval(state.timerInt); state.timerInt = null; } }
+
+/* ---------- Vault ---------- */
+function openVault(from){
+  state.vaultReturn = from;
+  var total = 0; for (var k in state.gems) total += state.gems[k];
+  $("vault-total").innerHTML = state.vault.length ?
+    "<b>" + state.vault.length + "</b> treasures gathered · <b>💎 " + total + "</b> gems in the vault this session. Tap any verse to hear it read aloud." :
+    "Your vault is empty for now — every journey fills it. Go find some treasure.";
+  var list = $("vault-list"); list.innerHTML = "";
+  if (!state.vault.length){
+    list.innerHTML = '<div class="empty">“Seek, and ye shall find.” — Matthew 7:7<br/>Your found verses will rest here.</div>';
+  }
+  state.vault.forEach(function(item){
+    var d = document.createElement("div"); d.className = "vaultitem";
+    var p = document.createElement("p"); p.textContent = "“" + item.text + "”";
+    var meta = document.createElement("div"); meta.className = "vmeta";
+    var ref = document.createElement("span"); ref.className = "vref";
+    ref.textContent = item.ref + " · 💎 " + item.gems + (state.players.length>1 ? " · " + item.player : "");
+    var btn = document.createElement("button"); btn.className = "vhear"; btn.textContent = "🔊 Hear It";
+    btn.addEventListener("click", function(){ speak(item.text + " — " + item.ref); });
+    meta.appendChild(ref); meta.appendChild(btn);
+    d.appendChild(p); d.appendChild(meta);
+    list.appendChild(d);
+  });
+  show("scr-vault");
+}
+$("vault-btn-home").addEventListener("click", function(){ openVault("home"); });
+$("vault-btn-game").addEventListener("click", function(){ openVault("game"); });
+$("vault-btn-found").addEventListener("click", function(){ openVault("found"); });
+$("vault-btn-finale").addEventListener("click", function(){ openVault("finale"); });
+$("vault-back").addEventListener("click", function(){
+  stopSpeak();
+  var map = {home:"scr-home", game:"scr-game", found:"scr-found", finale:"scr-finale"};
+  show(map[state.vaultReturn] || "scr-home");
+});
+
+/* ---------- Quit / Finale ---------- */
+$("quit-btn").addEventListener("click", function(){ stopTimer(); stopSpeak(); finishJourney(); });
+$("home-btn-finale").addEventListener("click", function(){ show("scr-home"); });
+function finishJourney(){
+  stopTimer(); stopSpeak();
+  var total = 0; for (var k in state.gems) total += state.gems[k];
+  $("finale-line").innerHTML = "<b>💎 " + total + " gems</b> gathered · " + state.vault.length + " treasures found at " + DEPTHS[state.depth] + ".";
+  var rows = state.players.map(function(p){ return {name:p, gems: state.gems[p]||0}; });
+  rows.sort(function(a,b){ return b.gems - a.gems; });
+  var medals = ["👑","🥈","🥉","✦"];
+  $("standings").innerHTML = rows.map(function(r,i){
+    return '<div class="srow"><span>' + (medals[i]||"✦") + " " + r.name + '</span><span class="sg">💎 ' + r.gems + '</span></div>';
+  }).join("");
+  show("scr-finale");
+}
+function updateGemsHud(){
+  var total = 0; for (var k in state.gems) total += state.gems[k];
+  $("hud-gems").textContent = "💎 " + total;
+}
+</script>
+</body>
+</html>
